@@ -1,0 +1,4 @@
+# dune init exe compiler
+# OCAMLPARAM: unset
+# Shared cache: disabled
+# Workspace root: /home/stefanh/Documents/School/CS/430/final

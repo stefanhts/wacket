@@ -1,0 +1,7 @@
+(library
+  (name compiler)
+  (modules lexer types parser interpreter compiler)
+  (libraries str))
+(env
+  (dev
+    (flags (:standard -2 -27-32-33-34-39))))
