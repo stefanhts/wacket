@@ -52,6 +52,7 @@ This should allow for the re-use of much of the compiler infrastructure, like th
 ## TODO
 
 - How to implement heap storage
+- ask jose about type wrapping for heap options
 
 ## Complete
 
