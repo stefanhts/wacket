@@ -1,7 +1,10 @@
 #lang racket
 (require "ast.rkt")
 
-(provide wat-out)
+(provide wat-display wat-out)
+
+;; wat ast -> void
+(define (wat-display w) (begin (write-string (wat-out w)) (void)))
 
 ;; wat ast -> string
 (define (wat-out w)

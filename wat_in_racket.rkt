@@ -1,7 +1,7 @@
 #lang racket
 (require "wat/ast.rkt" "wat/printer.rkt")
 
-(display (wat-out (Module 
+(wat-display (Module 
     (list 
         (Start 'funcname1)
         (Export 'testfunc 
@@ -30,4 +30,4 @@
             (Body (list
                 (ZrInst 'someinstructionwithnoargs)
                 (UnInst 'i64.neg (Const 42))
-                (BiInst 'i64.add (Const 32) (Const 69)))))))))
+                (BiInst 'i64.add (Const 32) (Const 69))))))))
