@@ -92,6 +92,8 @@ While this could be exposed to localhost with a web server, it may simply be ope
 We'll be aiming to implement all the features present in Loot, the reduced version of Racket created in class already.
 This should allow for the re-use of much of the compiler infrastructure, like the lexer, parser, and AST.
 
+[class github repo](https://github.com/cmsc430)
+
 ## TODO
 
 - Once the runtime system and HTML interface is completed to a minimal level, include instructions in the README for using the runtime system (e.g. from super simple .wat file to seeing result in browser)
