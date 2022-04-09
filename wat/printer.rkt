@@ -8,7 +8,7 @@
     (parse-module w))
 
 (define (tabs n)
-    (make-string (* 8 n) #\space))
+    (make-string (* 4 n) #\space))
 
 (define (parse-module w)
     (match w
@@ -47,7 +47,42 @@
 (define (parse-export n d ntabs) "TODO: parse-export")
 (define (parse-func s ls b ntabs) 
     (string-append
-        (tabs ntabs) "(func " (parse-funcsig s ntabs)))
+        (tabs ntabs) "(func " (parse-funcsig s ntabs) "\n"
+        (parse-locals ls (add1 ntabs))
+        (parse-body b (add1 ntabs))
+        (tabs ntabs) ")\n"))
+(define (parse-locals ls ntabs)
+    (match ls
+        ['() ""]
+        [(cons (Local n t) ls) (string-append
+            (tabs ntabs) "(local $" (symbol->string n) " " (wattype->string t) ")\n"
+            (parse-locals ls ntabs))]
+        [_ (error "WAT parse error: expected local")]))
+(define (parse-body b ntabs)
+    (match b
+        [(Body is) (parse-instruction-list is ntabs)]
+        [x (begin (display x) (error "WAT parse error: expected function body"))]))
+(define (parse-instruction-list is ntabs)
+    (match is
+        ['() ""]
+        [(cons (ZrInst n) is) (string-append
+            (tabs ntabs) "<ZrInst>" "\n"
+            (parse-instruction-list is ntabs))]
+        [(cons (UnInst n i) is) (string-append
+            (tabs ntabs) "<UnInst>" "\n"
+            (parse-instruction-list is ntabs))]
+        [(cons (BiInst n i1 i2) is) (string-append
+            (tabs ntabs) "<BiInst>" "\n"
+            (parse-instruction-list is ntabs))]
+        [x (begin (display x) (error "WAT parse error: instruction not recognized:"))]))
+
+(define (wattype->string t)
+    (match t 
+        [(i32) "i32"]
+        [(i64) "i64"]
+        [(f32) "f32"]
+        [(f64) "f64"]))
+
 (define (parse-funcsig s ntabs)
     (match s
         [(FuncSignature n ps r) "todo: implement parse-funcsig"]
