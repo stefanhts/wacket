@@ -28,9 +28,14 @@
             (parse-export n d ntabs)
             (parse-definitions ds ntabs))]
         [(cons (Func s ls b) ds) (string-append
-            (parse-func s ls b)
+            (parse-func s ls b ntabs)
+            (parse-definitions ds ntabs))]
+        [(cons (Start f) ds) (string-append
+            (parse-start f ntabs)
             (parse-definitions ds ntabs))]))
 
 (define (parse-import m f fs ntabs) "TODO: parse-import")
 (define (parse-export n d ntabs) "TODO: parse-export")
+(define (parse-func s ls b ntabs) "TODO: parse-func")
+(define (parse-start f ntabs) "TODO: parse-start")
 
