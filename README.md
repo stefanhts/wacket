@@ -17,7 +17,7 @@ We need to write to `.wat` which is the WebAssembly Text format. From there we c
 ### wat AST
 
 ```
-type Module = list of Definitions
+type Module = (Module [list of Definitions])
 
 type Definition = Import
                 | Export
@@ -41,12 +41,12 @@ type Result = (Result Type)
 
 type Local = (Local name? Type)
 
-type Type = i32
-          | i64
-          | f32
-          | f64
+type Type = 'i32
+          | 'i64
+          | 'f32
+          | 'f64
 
-type Body = [list of Instructions]
+type Body = (Body [list of Instructions])
 
 type Instruction = 
 
