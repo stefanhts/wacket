@@ -31,4 +31,5 @@ This should allow for the re-use of much of the compiler infrastructure, like th
 - make a make file?
 - Import Loot code
 - Create WASM representation in racket (do we need to come up with our own version of `seq`?)
+- WASM pretty printer
 - start working on functionality
