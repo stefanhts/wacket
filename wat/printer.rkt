@@ -35,18 +35,18 @@
             (parse-definitions ds ntabs))]))
 
 (define (parse-import m f fs ntabs) 
-    (match (list m f)
+    (match (list m f fs)
         ['() (error "parse error: import")]
         [(list '() '() '()) (error "parse error: missing names")]
         [(list m f fs) (string-append
-
+            (tabs ntabs) "(import \"" (symbol->string m) "\" \"" (symbol->string f) "\" " (parse-funcsig fs ntabs) ")\n" 
         )]
 
     )
 )
 (define (parse-export n d ntabs) "TODO: parse-export")
 (define (parse-func s ls b ntabs) "TODO: parse-func")
-(define (parse-funcsig n ps r) "TODO: implement this")
+(define (parse-funcsig n r) "TODO: implement this")
 
 (define (parse-start f ntabs)
     (string-append 
