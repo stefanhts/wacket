@@ -1,6 +1,6 @@
 #lang racket
 
-(provide Module Import Export Func FuncSignature Param Result Local Start i32 i64 f32 f54 Body Instruction)
+(provide Module Import Export Func FuncSignature Param Result Local Start i32 i64 f32 f64 Body Instruction)
 ;; type Module = (Module (Listof definitions))
 (struct Module (ds) #prefab)
 ;; type Import = (Import (modulename funcname FuncSignature)) 
