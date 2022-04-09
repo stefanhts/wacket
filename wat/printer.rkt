@@ -44,14 +44,23 @@
 
     )
 )
-(define (parse-export n d ntabs) "TODO: parse-export")
+(define (parse-export n fs ntabs) 
+    (match (cons n fs)
+        ['() (error "parse error: empty export")]
+        [(cons n fs) 
+            (string-append
+                (tabs ntabs) "(export \"" (symbol->string n) "\" " (parse-funcsig fs ntabs) ")\n"
+            )]
+    
+    ))
 
 (define (parse-func s ls b ntabs) 
     (string-append
         (tabs ntabs) "(func " (parse-funcsig s ntabs)))
+
 (define (parse-funcsig s ntabs)
     (match s
-        [(FuncSignature n ps r) "todo: implement parse-funcsig"]
+        [(FuncSignature n ps r) "(todo: implement parse-funcsig"]
         [_ (error "WAT parse error: should be FuncSignature")]))
 
 (define (parse-start f ntabs)
