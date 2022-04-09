@@ -94,8 +94,18 @@
 
 (define (parse-funcsig s ntabs)
     (match s
-        [(FuncSignature n ps r) "todo: implement parse-funcsig"]
+        [(FuncSignature n ps (Result t)) (string-append
+           "$" (symbol->string n) (parse-params ps ntabs) " (result " (wattype->string t) ")" 
+        )]
+        [(FuncSignature n ps r) (string-append ("$" (symbol->string n) (parse-params ps ntabs) ))]
         [_ (error "WAT parse error: should be FuncSignature")]))
+
+(define (parse-params ps ntabs)
+    (match ps
+        ['() ""]
+        [(cons (Param p t) ps) (string-append " (param " (wattype->string t) ")")] 
+    )
+)
 
 (define (parse-start f ntabs)
     (string-append 
