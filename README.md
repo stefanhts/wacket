@@ -17,6 +17,8 @@ We need to write to `.wat` which is the WebAssembly Text format. From there we c
 
 ### wat AST
 
+Note: [list of Things] may be empty in this representation.
+
 ```
 type Module = (Module [list of Definitions])
 
@@ -30,11 +32,12 @@ type Start = (Start funcname)
 ;; imports have a 2 level namespace: module then function
 type Import = (Import modulename funcname FuncSignature)
 
+;; name is what the RTS will see, funcdesc is what we use internally
 type Export = (Export name funcdesc)
 
 type Func = (Func FuncSignature [list of Locals] Body)
 
-type FuncSignature = (FuncSignature name? [list of Params]? Result?)
+type FuncSignature = (FuncSignature name? [list of Params] Result?)
 
 type Param = (Param name? Type)
 
@@ -54,12 +57,9 @@ type Instruction = UnInst
                  | BiInst
                  | ZrInst
 
-type ZrInst = 'i64.add
-            | 'i64.sub
-            | 'i64.mul
-            | 'i64.div
+type ZrInst = 
 
-type UnInst = (Const i64)
+type UnInst = (Const v)
             | (Call funcname)
 
 type BiInst = (Add Instruction Instruction)
