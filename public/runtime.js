@@ -7,7 +7,7 @@ function run(){
         const buffer = await response.arrayBuffer();
         const module = new WebAssembly.Module(buffer);
         const instance = new WebAssembly.Instance(module);
-        const result = instance.exports.main(Number(input));
+        const result = instance.exports.main(BigInt(input));
         console.log(result);
         output.value = result
       })();

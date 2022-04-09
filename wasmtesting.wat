@@ -6,7 +6,9 @@
     )
     (func $testfunc (result i64)
         (i64.sub
-            (i64.const 42)
+            (i64.add
+                (i64.const 69)
+                (i64.const 101))
             (i64.const 21)
         )  
     )
