@@ -4,6 +4,13 @@
 (display (wat-out (Module 
     (list 
         (Start 'funcname1)
+        (Export 'testfunc 
+        (FuncSignature 
+                'funcname1 
+                (list 
+                    (Param 'firstparam (i64))
+                    (Param 'secondparam (i64))) 
+                (Result (i64))))
         (Import 'mod 'func 
             (FuncSignature 
                 'funcname1 
