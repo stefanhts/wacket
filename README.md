@@ -7,6 +7,7 @@ We need to write to `.wat` which is the WebAssembly Text format. From there we c
 - WebAssembly Text Format (.wat)
   - [Understanding WebAssembly text format](https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format)
   - [Info on Text Format from the WebAssembly GitHub repo](https://webassembly.github.io/spec/core/text/index.html) (this gets _very_ spec-y)
+  - [WebAssembly Spec PDF](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj24szLpob3AhX2l3IEHQHADgEQFnoECAcQAQ&url=https%3A%2F%2Fwebassembly.github.io%2Fspec%2Fcore%2F_download%2FWebAssembly.pdf&usg=AOvVaw008spp5_YkxtS0xQ5c3xJw)
 
 - Compiling from WebAssembly Text format (.wat) to WebAssembly Binary format (.wasm)
   - [Info](https://developer.mozilla.org/en-US/docs/WebAssembly/Text_format_to_wasm)
@@ -49,8 +50,22 @@ type Type = i32
 type Body = (Body [list of Instructions])
 
 ;; this deviates from the official spec because we'll only use i64
-type Instruction = (Const v)
-                 | 
+type Instruction = UnInst
+                 | BiInst
+                 | ZrInst
+
+type ZrInst = 'i64.add
+            | 'i64.sub
+            | 'i64.mul
+            | 'i64.div
+
+type UnInst = (Const i64)
+            | (Call funcname)
+
+type BiInst = (Add Instruction Instruction)
+            | (Sub Instruction Instruction)
+            | (Mul Instruction Instruction)
+            | (Div Instruction Instruction)
 ```
 
 ## The Runtime system
