@@ -1,6 +1,6 @@
 #lang racket
 
-(provide Module Import Export Func FuncSignature Param Result Local Start i32 i64 f32 f64 Body ZrInst UnInst BiInst)
+(provide Module Import Export Func FuncSignature Param Result Local Start i32 i64 f32 f64 Body ZrInst UnInst BiInst Const)
 ;; type Module = (Module (Listof definitions))
 (struct Module (ds) #:prefab)
 ;; type Import = (Import (modulename funcname FuncSignature)) 
@@ -31,5 +31,7 @@
 (struct UnInst (n i) #:prefab)
 ;; type BiInst = (BiInst (name Instruction1 Instruction2))
 (struct BiInst (n i1 i2) #:prefab)
+;; type Const = (Const (n))
+(struct Const (n) #:prefab)
 ;; type Start = (Start (funcidx))
 (struct Start (f) #:prefab)
