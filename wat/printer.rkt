@@ -19,7 +19,7 @@
             "(module" "\n" 
             (parse-definitions ds 1)
             ")" "\n")]
-        [_ (error "expected (Module ...) at  top level")]))
+        [x (error "expected (Module ...) at  top level" x)]))
 
 (define (parse-definitions ds ntabs)
     (match ds
