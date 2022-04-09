@@ -29,7 +29,19 @@
 (struct Body (is) #:prefab)
 ;; type Instruction = (Inst (n [list of Instructions]))
 (struct Inst (n is) #:prefab)
+;; type Name = (Name (n))
+(struct Name (n) #:prefab)
 ;; type Const = (Const (n))
 (struct Const (n) #:prefab)
 ;; type Start = (Start (funcidx))
 (struct Start (f) #:prefab)
+
+;; (U Instruction Asm) ... -> Asm
+;; Convenient for sequencing instructions or groups of instructions
+(define (seq . xs)
+  (foldr (λ (x is)
+           (if (list? x)
+               (append x is)
+               (cons x is)))
+         '()
+         xs))
