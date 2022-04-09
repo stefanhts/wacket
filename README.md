@@ -1,6 +1,6 @@
-# 430_finalproj
+# wacket
 
-![wacket logo](public/wacket-logo.png)
+<img src="public/wacket-logo-white.png" width="100">
 
 ## Quickstart
 
