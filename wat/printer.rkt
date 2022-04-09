@@ -60,7 +60,7 @@
 
 (define (parse-funcsig s ntabs)
     (match s
-        [(FuncSignature n ps r) "(todo: implement parse-funcsig"]
+        [(FuncSignature n ps r) "todo: implement parse-funcsig"]
         [_ (error "WAT parse error: should be FuncSignature")]))
 
 (define (parse-start f ntabs)
