@@ -75,15 +75,22 @@
     (match is
         ['() ""]
         [(cons (ZrInst n) is) (string-append
-            (tabs ntabs) "<ZrInst>" "\n"
+            (tabs ntabs) "(" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs))]
         [(cons (UnInst n i) is) (string-append
-            (tabs ntabs) "<UnInst>" "\n"
+            (tabs ntabs) "(" (symbol->string n)"\n"
+            (parse-instruction-list (list i) (add1 ntabs))
+            (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
         [(cons (BiInst n i1 i2) is) (string-append
-            (tabs ntabs) "<BiInst>" "\n"
+            (tabs ntabs) "(" (symbol->string n) "\n"
+            (parse-instruction-list (list i1 i2) (add1 ntabs))
+            (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
-        [x (begin (display x) (error "WAT parse error: instruction not recognized:"))]))
+        [(cons (Const n) is) (string-append
+            (tabs ntabs) "(i64.const " (number->string n) ")\n"
+            (parse-instruction-list is ntabs))]
+        [x (error "WAT parse error: instruction not recognized:" x)]))
 
 (define (wattype->string t)
     (match t 

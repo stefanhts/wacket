@@ -29,5 +29,5 @@
                 (Local 'firstlocal (i64))) 
             (Body (list
                 (ZrInst 'someinstructionwithnoargs)
-                (UnInst 'i64.const 42)
-                (BiInst 'i64.add (UnInst 'i64.const 84) (UnInst 'i64.const 69)))))))))
+                (UnInst 'i64.neg (Const 42))
+                (BiInst 'i64.add (Const 32) (Const 69)))))))))
