@@ -4,7 +4,7 @@
 (define (compile e)
         (Module
             (list
-                (Export 'main (FuncSignature 'main '() (Result (i64))))
+                (Export 'main (ExportFuncSignature 'main))
                 (Func (FuncSignature 'main '() (Result (i64))) '() (Body (compile-e e)))
             ) 
         
