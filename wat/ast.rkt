@@ -5,7 +5,7 @@
 (struct Module (ds) #:prefab)
 ;; type Import = (Import (modulename funcname FuncSignature)) 
 (struct Import (m f fs) #:prefab)
-;; type Export = (Export (name funcdesc))
+;; type Export = (Export (name FuncSignature))
 (struct Export (n d) #:prefab)
 ;; type Func = (Func (FuncSignature (Listof Locals) Body))
 (struct Func (s ls b) #:prefab)
