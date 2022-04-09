@@ -19,12 +19,35 @@ We need to write to `.wat` which is the WebAssembly Text format. From there we c
 ```
 type Module = list of Definitions
 
-type Definition = Imports
-                | Exports
-                | Funcs
+type Definition = Import
+                | Export
+                | Func
                 | Start
 
-type Imports = 
+type Import = 
+
+type Export = (Export name funcdesc)
+
+type Func = (Func name? Signature [list of Locals] Body)
+
+type Signature = (Signature [list of Params] Result)
+
+type Param = (Param name? Type)
+
+type Result = (Result Type)
+
+type Local = (Local name? Type)
+
+type Type = i32
+          | i64
+          | f32
+          | f64
+
+type Body = [list of Instructions]
+
+type Instruction = 
+
+type Start = (Start funcidx)
 ```
 
 ## The Runtime system
