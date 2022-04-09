@@ -37,5 +37,8 @@
 (define (parse-import m f fs ntabs) "TODO: parse-import")
 (define (parse-export n d ntabs) "TODO: parse-export")
 (define (parse-func s ls b ntabs) "TODO: parse-func")
-(define (parse-start f ntabs) "TODO: parse-start")
+
+(define (parse-start f ntabs)
+    (string-append 
+        (tabs ntabs) "(start $" (symbol->string f) ")" "\n"))
 
