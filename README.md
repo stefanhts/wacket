@@ -7,6 +7,7 @@ We need to write to `.wat` which is the WebAssembly Text format. From there we c
 - WebAssembly Text Format (.wat)
   - [Understanding WebAssembly text format](https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format)
   - [Info on Text Format from the WebAssembly GitHub repo](https://webassembly.github.io/spec/core/text/index.html) (this gets _very_ spec-y)
+  - [WebAssembly Spec PDF](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj24szLpob3AhX2l3IEHQHADgEQFnoECAcQAQ&url=https%3A%2F%2Fwebassembly.github.io%2Fspec%2Fcore%2F_download%2FWebAssembly.pdf&usg=AOvVaw008spp5_YkxtS0xQ5c3xJw)
 
 - Compiling from WebAssembly Text format (.wat) to WebAssembly Binary format (.wasm)
   - [Info](https://developer.mozilla.org/en-US/docs/WebAssembly/Text_format_to_wasm)
@@ -16,15 +17,68 @@ We need to write to `.wat` which is the WebAssembly Text format. From there we c
 
 ### wat AST
 
-```
-type Module = list of Definitions
+Note: [list of Things] may be empty in this representation.
 
-type Definition = Imports
-                | Exports
-                | Funcs
+```
+type Module = (Module [list of Definitions])
+
+type Definition = Import
+                | Export
+                | Func
                 | Start
 
-type Imports = 
+type Start = (Start funcname)
+
+;; imports have a 2 level namespace: module then function
+type Import = (Import modulename funcname FuncSignature)
+
+;; name is what the RTS will see, funcdesc is what we use internally
+type Export = (Export name funcdesc)
+
+type Func = (Func FuncSignature [list of Locals] Body)
+
+type FuncSignature = (FuncSignature name? [list of Params] Result?)
+
+type Param = (Param name? Type)
+
+type Result = (Result Type)
+
+type Local = (Local name? Type)
+
+type Type = i32
+          | i64
+          | f32
+          | f64
+
+type Body = (Body [list of Instructions])
+
+;; this deviates from the official spec because we'll only use i64
+type Instruction = UnInst
+                 | BiInst
+                 | ZrInst
+
+type ZrInst = 
+
+type UnInst = (Const v)
+            | (Call funcname)
+            | (Abs Instruction)
+            | (Not Instruction)
+            | (Eqz Instruction)
+
+type BiInst = (Add Instruction Instruction)
+            | (Sub Instruction Instruction)
+            | (Mul Instruction Instruction)
+            | (Div Instruction Instruction)
+            | (And Instruction Instruction)
+            | (Or  Instruction Instruction)
+            | (Xor Instruction Instruction)
+            | (Eq  Instruction Instruction)
+            | (Ne  Instruction Instruction)
+            | (Gt  Instruction Instruction)
+            | (Lt  Instruction Instruction)
+            | (Ge  Instruction Instruction)
+            | (Le  Instruction Instruction)
+
 ```
 
 ## The Runtime system
@@ -37,6 +91,8 @@ While this could be exposed to localhost with a web server, it may simply be ope
 
 We'll be aiming to implement all the features present in Loot, the reduced version of Racket created in class already.
 This should allow for the re-use of much of the compiler infrastructure, like the lexer, parser, and AST.
+
+[class github repo](https://github.com/cmsc430)
 
 ## TODO
 
