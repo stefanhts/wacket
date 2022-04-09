@@ -14,6 +14,19 @@ We need to write to `.wat` which is the WebAssembly Text format. From there we c
   - Think of this as our version of nasm
   - can install from a package manager (e.g. `sudo apt install wabt`)
 
+### wat AST
+
+```
+type Module = list of Definitions
+
+type Definition = Imports
+                | Exports
+                | Funcs
+                | Start
+
+type Imports = 
+```
+
 ## The Runtime system
 
 Our runtime system will be written in JavaScript, which can interface with compiled WASM bidirectionally.
