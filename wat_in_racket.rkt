@@ -1,7 +1,9 @@
 #lang racket
-(require "wat/ast.rkt")
-(Module 
+(require "wat/ast.rkt" "wat/printer.rkt")
+
+(display (wat-out (Module 
     (list 
+        (Start 'funcname1)
         (Func 
             (FuncSignature 
                 'funcname1 
@@ -14,4 +16,4 @@
             (Body (list
                 (ZrInst 'someinstructionwithnoargs)
                 (UnInst 'i64.const 42)
-                (BiInst 'i64.add (UnInst 'i64.const 84) (UnInst 'i64.const 69)))))))
+                (BiInst 'i64.add (UnInst 'i64.const 84) (UnInst 'i64.const 69)))))))))
