@@ -1,10 +1,10 @@
 (module
-    (func $testfunc3 (param i64) (result i64)
+    (func $testfunc (result i64)
         i64.const 42
         i64.const 21
-        i64.sub    
+        (i64.sub)  
     )
-    (func $testfunc (result i64)
+    (func $testfunc3 (result i64)
         (i64.sub
             (i64.add
                 (i64.const 69)
