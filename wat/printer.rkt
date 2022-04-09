@@ -47,15 +47,28 @@
 
     )
 )
+(define (parse-import-funcsig s ntabs)
+    (match s
+        [(FuncSignature n ps (Result t)) (string-append
+           "(func $" (symbol->string n) (parse-params ps ntabs) " (result " (wattype->string t) "))" 
+        )]
+        [_ (error "WAT parse error: should be FuncSignature (input)")]))
+
 (define (parse-export n fs ntabs) 
     (match (cons n fs)
         ['() (error "parse error: empty export")]
         [(cons n fs) 
             (string-append
-                (tabs ntabs) "(export \"" (symbol->string n) "\" " (parse-funcsig fs ntabs) ")\n"
+                (tabs ntabs) "(export \"" (symbol->string n) "\" " (parse-export-funcsig fs ntabs) ")\n"
             )]
     
     ))
+(define (parse-export-funcsig s ntabs)
+    (match s
+        [(ExportFuncSignature n) (string-append
+           "(func $" (symbol->string n) ")" 
+        )]
+        [_ (error "WAT parse error: should be ExportFuncSignature")]))
 
 (define (parse-func s ls b ntabs) 
     (string-append
@@ -107,7 +120,6 @@
         [(FuncSignature n ps (Result t)) (string-append
            "$" (symbol->string n) (parse-params ps ntabs) " (result " (wattype->string t) ")" 
         )]
-        [(FuncSignature n ps r) (string-append ("$" (symbol->string n) (parse-params ps ntabs) ))]
         [_ (error "WAT parse error: should be FuncSignature")]))
 
 (define (parse-params ps ntabs)
