@@ -1,2 +1,2 @@
 #lang racket
-(add1 42)
+42
