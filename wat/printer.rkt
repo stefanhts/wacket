@@ -45,8 +45,13 @@
     )
 )
 (define (parse-export n d ntabs) "TODO: parse-export")
-(define (parse-func s ls b ntabs) "TODO: parse-func")
-(define (parse-funcsig n ps r) "TODO: implement this")
+(define (parse-func s ls b ntabs) 
+    (string-append
+        (tabs ntabs) "(func " (parse-funcsig s ntabs)))
+(define (parse-funcsig s ntabs)
+    (match s
+        [(FuncSignature n ps r) "todo: implement parse-funcsig"]
+        [_ (error "WAT parse error: should be FuncSignature")]))
 
 (define (parse-start f ntabs)
     (string-append 
