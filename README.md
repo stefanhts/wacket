@@ -17,6 +17,9 @@ We need to write to `.wat` which is the WebAssembly Text format. From there we c
 
 - WebAssembly Text Format (.wat)
   - find the ast for our representation at the bottom of the readme
+  - wat boolean representation
+    - true: 1
+    - false: 0
   - [Understanding WebAssembly text format](https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format)
   - [Info on Text Format from the WebAssembly GitHub repo](https://webassembly.github.io/spec/core/text/index.html) (this gets _very_ spec-y)
   - [WebAssembly Spec PDF](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj24szLpob3AhX2l3IEHQHADgEQFnoECAcQAQ&url=https%3A%2F%2Fwebassembly.github.io%2Fspec%2Fcore%2F_download%2FWebAssembly.pdf&usg=AOvVaw008spp5_YkxtS0xQ5c3xJw)
@@ -85,16 +88,8 @@ type Type = i32
 
 type Body = (Body [list of Instructions])
 
-type Instruction = UnInst
-                 | BiInst
-                 | ZrInst
+type Instruction = (Inst name [list of Instructions])
                  | Const
-
-type ZrInst = (ZrInst name)
-
-type UnInst = (UnInst name Instruction)
-
-type BiInst = (BiInst name Instruction1 Instruction2)
 
 type Const = (Const v)
 
