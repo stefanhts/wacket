@@ -90,17 +90,12 @@
 (define (parse-instruction-list is ntabs)
     (match is
         ['() ""]
-        [(cons (ZrInst n) is) (string-append
+        [(cons (Inst n '()) is) (string-append          ;; no arguments
             (tabs ntabs) "(" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs))]
-        [(cons (UnInst n i) is) (string-append
-            (tabs ntabs) "(" (symbol->string n)"\n"
-            (parse-instruction-list (list i) (add1 ntabs))
-            (tabs ntabs) ")\n"
-            (parse-instruction-list is ntabs))]
-        [(cons (BiInst n i1 i2) is) (string-append
+        [(cons (Inst n sub-is) is) (string-append       ;; has arguments
             (tabs ntabs) "(" (symbol->string n) "\n"
-            (parse-instruction-list (list i1 i2) (add1 ntabs))
+            (parse-instruction-list sub-is (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
         [(cons (Const n) is) (string-append
