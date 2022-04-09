@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "fetch": "^1.1.0",
+    "node-fetch": "^3.2.3",
+    "wabt": "^1.0.28",
+    "wat-wasm": "^1.0.43"
+  },
+  "type": "module"
+}
