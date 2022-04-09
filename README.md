@@ -61,11 +61,24 @@ type ZrInst =
 
 type UnInst = (Const v)
             | (Call funcname)
+            | (Abs Instruction)
+            | (Not Instruction)
+            | (Eqz Instruction)
 
 type BiInst = (Add Instruction Instruction)
             | (Sub Instruction Instruction)
             | (Mul Instruction Instruction)
             | (Div Instruction Instruction)
+            | (And Instruction Instruction)
+            | (Or  Instruction Instruction)
+            | (Xor Instruction Instruction)
+            | (Eq  Instruction Instruction)
+            | (Ne  Instruction Instruction)
+            | (Gt  Instruction Instruction)
+            | (Lt  Instruction Instruction)
+            | (Ge  Instruction Instruction)
+            | (Le  Instruction Instruction)
+
 ```
 
 ## The Runtime system
