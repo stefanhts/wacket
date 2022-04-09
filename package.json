@@ -1,0 +1,24 @@
+{
+  "name": "430_finalproj",
+  "version": "1.0.0",
+  "description": "Wasm Runner",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stefanhts/430_finalproj.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stefanhts/430_finalproj/issues"
+  },
+  "homepage": "https://github.com/stefanhts/430_finalproj#readme",
+  "dependencies": {
+    "express": "^4.17.3",
+    "node-fetch": "^3.2.3"
+  },
+  "module": "true"
+}

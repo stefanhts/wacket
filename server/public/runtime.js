@@ -1,6 +1,6 @@
 function run(){
     const input = document.getElementById("inputbox").value
-    const output = document.getElementById("outputbox")
+    const output = document.getElementById("res")
     console.log("test works");
     (async () => {
         const response = await fetch('main.wasm');
@@ -9,16 +9,6 @@ function run(){
         const instance = new WebAssembly.Instance(module);
         const result = instance.exports.main(BigInt(input));
         console.log(result);
-        output.value = result
+        output.innerHTML = result
       })();
 }
-
-// const main_wasm = fs.readFileSync("../main.wasm")
-
-// console.log(main_wasm)
-
-// const main = await WebAssembly.instantiate(new Uint8Array(math_wasm))
-//                 .then(res => res.instance.exports)
-
-// console.log(main)
-
