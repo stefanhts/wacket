@@ -39,10 +39,10 @@ type Result = (Result Type)
 
 type Local = (Local name? Type)
 
-type Type = 'i32
-          | 'i64
-          | 'f32
-          | 'f64
+type Type = i32
+          | i64
+          | f32
+          | f64
 
 type Body = (Body [list of Instructions])
 
