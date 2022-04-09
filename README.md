@@ -24,13 +24,16 @@ type Definition = Import
                 | Func
                 | Start
 
-type Import = 
+;; imports have a 2 level namespace: module then function
+type Import = (Import modulename funcname ImportDesc)
+
+type ImportDesc = (ImportDesc name FuncSignature)
 
 type Export = (Export name funcdesc)
 
-type Func = (Func name? Signature [list of Locals] Body)
+type Func = (Func name? FuncSignature [list of Locals] Body)
 
-type Signature = (Signature [list of Params] Result)
+type FuncSignature = (FuncSignature [list of Params] Result)
 
 type Param = (Param name? Type)
 
