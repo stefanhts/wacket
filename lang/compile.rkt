@@ -13,5 +13,13 @@
 
 (define (compile-e e)
     (match e
-        [(Int n) (list (Const n))])
+        [(Int n) (list (Const n))]
+        [(Prim1 p e) (compile-prim1 p e)])
+)
+
+(define (compile-prim1 p e)
+    [match p
+        ('add1 (list (BiInst 'i64.add (compile-e e) (Const 1))))
+        ('sub1 (list (BiInst 'i64.sub (compile-e e) (Const 1)))) 
+    ]
 )
