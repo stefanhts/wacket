@@ -24,6 +24,8 @@ type Definition = Import
                 | Func
                 | Start
 
+type Start = (Start funcname)
+
 ;; imports have a 2 level namespace: module then function
 type Import = (Import modulename funcname FuncSignature)
 
@@ -46,9 +48,9 @@ type Type = i32
 
 type Body = (Body [list of Instructions])
 
-type Instruction = 
-
-type Start = (Start funcidx)
+;; this deviates from the official spec because we'll only use i64
+type Instruction = (Const v)
+                 | 
 ```
 
 ## The Runtime system
