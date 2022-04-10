@@ -26,4 +26,4 @@
                 (Inst 'someinstructionwithnoargs '())
                 (Inst 'i64.neg (list (Const 42)))
                 (Inst 'i64.add (list (Const 32) (Const 69)))
-                (Inst 'if (list (Const 1) (Const 4) (Const 5)))))))))
+                (Inst 'if (list (Const 1) (Name 'asdf) (Const 5)))))))))

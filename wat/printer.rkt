@@ -90,6 +90,8 @@
 (define (parse-instruction-list is ntabs)
     (match is
         ['() ""]
+        [(cons (Result t) is) (string-append (tabs ntabs) "(result " (wattype->string t) ")\n" (parse-instruction-list is ntabs))]
+        [(cons (Name n) is) (string-append (tabs ntabs) "$" (symbol->string n) "\n" (parse-instruction-list is ntabs))]
         [(cons (Inst n '()) is) (string-append          ;; no arguments
             (tabs ntabs) "(" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs))]
