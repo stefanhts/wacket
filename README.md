@@ -4,9 +4,9 @@
 
 ## Getting Server Running
 
-1. npm install
-2. cd server
-3. node index.js
+1. `npm install`
+2. `cd server`
+3. `node index.js`
 4. navigate to http://localhost:3000
 
 ## Quick-start
@@ -53,6 +53,11 @@ This should allow for the re-use of much of the compiler infrastructure, like th
 
 - How to implement heap storage
 - ask jose about type wrapping for heap options
+- Lets
+- Functions
+- Prim2
+- Case
+- Cond
 
 ## Complete
 
@@ -61,6 +66,7 @@ This should allow for the re-use of much of the compiler infrastructure, like th
 - Integers
 - Prim1
 - If
+- types
 
 ## wat AST
 
