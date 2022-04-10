@@ -38,6 +38,7 @@ function run(){
         const module = new WebAssembly.Module(buffer);
         const instance = new WebAssembly.Instance(module);
         const rawResult = instance.exports.main(BigInt(input));
+        // console.log(rawResult);
         const result = unwrap(rawResult);
         console.log(result);
         output.innerHTML = result;
@@ -75,7 +76,7 @@ function val_typeof(x){
 
   if ((int_type_mask & x) === int_type_tag) return typesEnum.T_INT
 
-  if ((char_type_tag & x) === char_type_tag) return typesEnum.T_CHAR
+  if ((char_type_mask & x) === char_type_tag) return typesEnum.T_CHAR
 
   switch (x) {
     case val_true:
@@ -93,6 +94,7 @@ function val_typeof(x){
 }
 
 function unwrap(raw){
+  // console.log(val_typeof(raw))
   switch (val_typeof(raw)){
     case typesEnum.T_INT:
       return val_unwrap_int(raw)
