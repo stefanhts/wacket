@@ -14,9 +14,6 @@
 1. Write some wacket (for example, into `example.rkt`)
 2. `make example.wat` (optional)
 3. `make example.wasm`
-4. Open `public/index.html` in a local webserver [TODO: make instructions or something for this]
-5. Open the webserver in a browser
-6. Click run
 
 ## Target Language: WebAssembly
 
@@ -52,6 +49,14 @@ This should allow for the re-use of much of the compiler infrastructure, like th
 ## TODO
 
 - How to implement heap storage
+
+## Complete
+
+- Pretty printer
+- Makefile
+- Integers
+- Prim1
+- If
 
 ## wat AST
 
