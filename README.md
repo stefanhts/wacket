@@ -4,9 +4,9 @@
 
 ## Getting Server Running
 
-1. npm install
-2. cd server
-3. node index.js
+1. `npm install`
+2. `cd server`
+3. `node index.js`
 4. navigate to http://localhost:3000
 
 ## Quick-start
@@ -49,6 +49,12 @@ This should allow for the re-use of much of the compiler infrastructure, like th
 ## TODO
 
 - How to implement heap storage
+- Lets
+- Functions
+- Prim2
+- Case
+- Cond
+- Types
 
 ## Complete
 
