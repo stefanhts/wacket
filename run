@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-NAME=${1?Error: no file specified}
-wat2wasm $NAME -o public/main.wasm
-echo "successfully compiled $NAME"
