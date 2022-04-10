@@ -1,5 +1,5 @@
 #lang racket
-(require "ast.rkt" "../wat/ast.rkt")
+(require "ast.rkt" "../wat/ast.rkt" "types.rkt")
 (provide compile)
 (define (compile e)
         (Module
@@ -13,23 +13,26 @@
 
 (define (compile-e e)
     (match e
-        [(Int n) (Const n)]
+        [(Int n) (Const (imm->bits n))]
+        [(Bool b) (Const (imm->bits b))]
         [(Prim1 p e) (compile-prim1 p e)]
-        [(IfZero e1 e2 e3) (compile-ifzero e1 e2 e3)]
+        [(If e1 e2 e3) (compile-if e1 e2 e3)]
     )
 )
 
 (define (compile-prim1 p e)
     [match p
-        ('add1 (Inst 'i64.add (seq (compile-e e) (Const 1))))
-        ('sub1 (Inst 'i64.sub (seq (compile-e e) (Const 1)))) 
+        ('add1 (Inst 'i64.add (seq (compile-e e) (Const (imm->bits 1)))))
+        ('sub1 (Inst 'i64.sub (seq (compile-e e) (Const (imm->bits 1))))) 
     ]
 )
 
 ;; Expr Expr Expr -> Asm
-(define (compile-ifzero e1 e2 e3)
+(define (compile-if e1 e2 e3)
     (Inst 'if (seq (Result (i64))
-        (Inst 'i64.eqz (seq (compile-e e1))) 
+        (Inst 'i64.ne (seq 
+            (compile-e e1)
+            (Const val-false)))
         (compile-e e2)
         (compile-e e3)))
 )

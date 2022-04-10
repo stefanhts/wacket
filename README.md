@@ -52,12 +52,12 @@ This should allow for the re-use of much of the compiler infrastructure, like th
 ## TODO
 
 - How to implement heap storage
+- ask jose about type wrapping for heap options
 - Lets
 - Functions
 - Prim2
 - Case
 - Cond
-- Types
 
 ## Complete
 
@@ -66,6 +66,7 @@ This should allow for the re-use of much of the compiler infrastructure, like th
 - Integers
 - Prim1
 - If
+- types
 
 ## wat AST
 
