@@ -1,15 +1,19 @@
 # wacket
 
-<img src="public/wacket-logo-white.png" width="100">
+<img src="server/public/wacket-logo-white.png" width="100">
 
-## Quickstart
+## Getting Server Running
+
+1. npm install
+2. cd server
+3. node index.js
+4. navigate to http://localhost:3000
+
+## Quick-start
 
 1. Write some wacket (for example, into `example.rkt`)
 2. `make example.wat` (optional)
 3. `make example.wasm`
-4. Open `public/index.html` in a local webserver [TODO: make instructions or something for this]
-5. Open the webserver in a browser
-6. Click run
 
 ## Target Language: WebAssembly
 
@@ -38,7 +42,7 @@ Our runtime system is written in JavaScript, which can interface with compiled W
 There is a minimal HTML file to act as an interface to the runtime system.
 This must be exposed to localhost with a web server, because modern browsers don't allow for accessing arbitrary files in the filesystem.
 
-## Source Language: Racket (Loot)
+## Source Language: wacket
 
 We'll be aiming to implement all the features present in Loot, the reduced version of Racket created in class already.
 This should allow for the re-use of much of the compiler infrastructure, like the lexer, parser, and AST.
@@ -47,11 +51,19 @@ This should allow for the re-use of much of the compiler infrastructure, like th
 
 ## TODO
 
-- start working on functionality
+- How to implement heap storage
+
+## Complete
+
+- Pretty printer
+- Makefile
+- Integers
+- Prim1
+- If
 
 ## wat AST
 
-Note: [list of Things] may be empty in this representation.
+> Note: [list of Things] may be empty in this representation.
 
 ```
 type Module = (Module [list of Definitions])
