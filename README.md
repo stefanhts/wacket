@@ -4,6 +4,13 @@
 
 ## Quickstart
 
+### Getting Server Running
+
+1. npm install
+2. cd server
+3. node index.js
+4. navigate to http://localhost:3000
+
 1. Write some wacket (for example, into `example.rkt`)
 2. `make example.wat` (optional)
 3. `make example.wasm`
