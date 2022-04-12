@@ -41,8 +41,8 @@
 
 (define (parse-import m f fs ntabs) 
     (match (list m f fs)
-        ['() (parse-error "Empty import")]
-        [(list '() '() '()) (parse-error "Import missing names")]
+        ['() (parse-error-noarg "Empty import")]
+        [(list '() '() '()) (parse-error-noarg "Import missing names")]
         [(list m f fs) (string-append
             (tabs ntabs) "(import \"" (symbol->string m) "\" \"" (symbol->string f) "\" " (parse-funcsig fs ntabs) ")\n" 
         )]
@@ -58,7 +58,7 @@
 
 (define (parse-export n fs ntabs) 
     (match (cons n fs)
-        ['() (parse-error "Empty export")]
+        ['() (parse-error-noarg "Empty export")]
         [(cons n fs) 
             (string-append
                 (tabs ntabs) "(export \"" (symbol->string n) "\" " (parse-export-funcsig fs ntabs) ")\n"
@@ -161,3 +161,5 @@
 
 (define (parse-error s x) 
     (error (string-append "WAT parse error. " s) x))
+(define (parse-error-noarg s)
+    (error (string-append "WAT parse error. " s)))
