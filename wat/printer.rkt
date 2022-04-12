@@ -19,7 +19,7 @@
             "(module" "\n" 
             (parse-definitions ds 1)
             ")" "\n")]
-        [x (error "expected (Module ...) at  top level" x)]))
+        [x (parse-error "Expected (Module ...) at  top level, found:" x)]))
 
 (define (parse-definitions ds ntabs)
     (match ds
@@ -35,12 +35,14 @@
             (parse-definitions ds ntabs))]
         [(cons (Start f) ds) (string-append
             (parse-start f ntabs)
-            (parse-definitions ds ntabs))]))
+            (parse-definitions ds ntabs))]
+        [(cons x _) (parse-error "Expected definition, got:" x)]
+        [x (parse-error "Expected list of definitions, got:" x)]))
 
 (define (parse-import m f fs ntabs) 
     (match (list m f fs)
-        ['() (error "parse error: import")]
-        [(list '() '() '()) (error "parse error: missing names")]
+        ['() (parse-error "Empty import")]
+        [(list '() '() '()) (parse-error "Import missing names")]
         [(list m f fs) (string-append
             (tabs ntabs) "(import \"" (symbol->string m) "\" \"" (symbol->string f) "\" " (parse-funcsig fs ntabs) ")\n" 
         )]
@@ -52,11 +54,11 @@
         [(FuncSignature n ps (Result t)) (string-append
            "(func $" (symbol->string n) (parse-params ps ntabs) " (result " (wattype->string t) "))" 
         )]
-        [_ (error "WAT parse error: should be FuncSignature (input)")]))
+        [x (parse-error "Should be FuncSignature (input), was:" x)]))
 
 (define (parse-export n fs ntabs) 
     (match (cons n fs)
-        ['() (error "parse error: empty export")]
+        ['() (parse-error "Empty export")]
         [(cons n fs) 
             (string-append
                 (tabs ntabs) "(export \"" (symbol->string n) "\" " (parse-export-funcsig fs ntabs) ")\n"
@@ -68,7 +70,7 @@
         [(ExportFuncSignature n) (string-append
            "(func $" (symbol->string n) ")" 
         )]
-        [_ (error "WAT parse error: should be ExportFuncSignature")]))
+        [x (parse-error "Expected ExportFuncSignature, got:" x)]))
 
 (define (parse-func s ls b ntabs) 
     (string-append
@@ -82,11 +84,12 @@
         [(cons (Local n t) ls) (string-append
             (tabs ntabs) "(local $" (symbol->string n) " " (wattype->string t) ")\n"
             (parse-locals ls ntabs))]
-        [_ (error "WAT parse error: expected local")]))
+        [(cons x _) (parse-error "Expected local in locals section, got" x)]
+        [x (parse-error "Expected list of locals, got" x)]))
 (define (parse-body b ntabs)
     (match b
         [(Body is) (parse-instruction-list is ntabs)]
-        [x (begin (display x) (error "WAT parse error: expected function body"))]))
+        [x (parse-error "Expected function body, got:" x)]))
 (define (parse-instruction-list is ntabs)
     (match is
         ['() ""]
@@ -103,7 +106,8 @@
         [(cons (Const n) is) (string-append
             (tabs ntabs) "(i64.const " (number->string n) ")\n"
             (parse-instruction-list is ntabs))]
-        [x (error "WAT parse error: instruction not recognized:" x)]))
+        [(cons x _) (parse-error "Instruction not recognized:" x)]
+        [x (parse-error "Expected instruction list, got:" x)]))
 
 (define (wattype->string t)
     (match t 
@@ -117,7 +121,7 @@
         [(FuncSignature n ps (Result t)) (string-append
            "$" (symbol->string n) (parse-params ps ntabs) " (result " (wattype->string t) ")" 
         )]
-        [_ (error "WAT parse error: should be FuncSignature")]))
+        [x (parse-error "Should be FuncSignature, but is:" x)]))
 
 (define (parse-params ps ntabs)
     (match ps
@@ -130,3 +134,5 @@
     (string-append 
         (tabs ntabs) "(start $" (symbol->string f) ")" "\n"))
 
+(define (parse-error s x) 
+    (error (string-append "WAT parse error. " s) x))
