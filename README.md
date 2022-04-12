@@ -2,6 +2,14 @@
 
 <img src="server/public/wacket-logo-white.png" width="100">
 
+## Prerequisites
+
+Make sure you have the following installed:
+
+- racket
+- WABT (see section "Target Language: WebAssembly" -> "Compiling from WebAssembly Text format..." below)
+- node/npm
+
 ## Getting Server Running
 
 1. `npm install`
@@ -31,10 +39,10 @@ We need to write to `.wat` which is the WebAssembly Text format. From there we c
   - [wat examples](https://github.com/mdn/webassembly-examples)
 
 - Compiling from WebAssembly Text format (.wat) to WebAssembly Binary format (.wasm)
-  - [Info](https://developer.mozilla.org/en-US/docs/WebAssembly/Text_format_to_wasm)
+  - [Info from Mozilla](https://developer.mozilla.org/en-US/docs/WebAssembly/Text_format_to_wasm)
   - [WABT: The WebAssembly Binary Toolkit](https://github.com/webassembly/wabt)
-  - Think of this as our version of nasm
-  - can install from a package manager (e.g. `sudo apt install wabt`)
+    - Think of this as our version of nasm
+    - can install from a package manager (e.g. `sudo apt install wabt`)
 
 ## The Runtime system
 
