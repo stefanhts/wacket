@@ -7,7 +7,7 @@
 Make sure you have the following installed:
 
 - racket
-- WABT (see section "Target Language: WebAssembly" -> "Compiling from WebAssembly Text format..." below)
+- WABT (see [this section](#compiling-from-webassembly-text-format-wat-to-webassembly-binary-format-wasm) below)
 - node/npm
 
 ## Getting Server Running
@@ -27,22 +27,22 @@ Make sure you have the following installed:
 
 We need to write to `.wat` which is the WebAssembly Text format. From there we can use wat2wasm to turn that into the actual assembly code which can run in the browser.
 
-- WebAssembly Text Format (.wat)
-  - find the ast for our representation at the bottom of the readme
-  - wat boolean representation
-    - true: 1
-    - false: 0
-  - [Understanding WebAssembly text format](https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format)
-  - [Info on Text Format from the WebAssembly GitHub repo](https://webassembly.github.io/spec/core/text/index.html) (this gets _very_ spec-y)
-  - [WebAssembly Spec PDF](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj24szLpob3AhX2l3IEHQHADgEQFnoECAcQAQ&url=https%3A%2F%2Fwebassembly.github.io%2Fspec%2Fcore%2F_download%2FWebAssembly.pdf&usg=AOvVaw008spp5_YkxtS0xQ5c3xJw)
-  - [wat s-expression-syntax](https://github.com/WebAssembly/spec/blob/master/interpreter/README.md#s-expression-syntax)
-  - [wat examples](https://github.com/mdn/webassembly-examples)
+### WebAssembly Text Format (.wat)
+- find the ast for our representation at the bottom of the readme
+- wat boolean representation
+  - true: 1
+  - false: 0
+- [Understanding WebAssembly text format](https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format)
+- [Info on Text Format from the WebAssembly GitHub repo](https://webassembly.github.io/spec/core/text/index.html) (this gets _very_ spec-y)
+- [WebAssembly Spec PDF](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj24szLpob3AhX2l3IEHQHADgEQFnoECAcQAQ&url=https%3A%2F%2Fwebassembly.github.io%2Fspec%2Fcore%2F_download%2FWebAssembly.pdf&usg=AOvVaw008spp5_YkxtS0xQ5c3xJw)
+- [wat s-expression-syntax](https://github.com/WebAssembly/spec/blob/master/interpreter/README.md#s-expression-syntax)
+- [wat examples](https://github.com/mdn/webassembly-examples)
 
-- Compiling from WebAssembly Text format (.wat) to WebAssembly Binary format (.wasm)
-  - [Info from Mozilla](https://developer.mozilla.org/en-US/docs/WebAssembly/Text_format_to_wasm)
-  - [WABT: The WebAssembly Binary Toolkit](https://github.com/webassembly/wabt)
-    - Think of this as our version of nasm
-    - can install from a package manager (e.g. `sudo apt install wabt`)
+### Compiling from WebAssembly Text format (.wat) to WebAssembly Binary format (.wasm)
+- [Info from Mozilla](https://developer.mozilla.org/en-US/docs/WebAssembly/Text_format_to_wasm)
+- [WABT: The WebAssembly Binary Toolkit](https://github.com/webassembly/wabt)
+  - Think of this as our version of nasm
+  - can install from a package manager (e.g. `sudo apt install wabt`)
 
 ## The Runtime system
 
