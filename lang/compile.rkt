@@ -21,7 +21,7 @@
 )
 
 (define (compile-prim1 p e)
-    [match p
+    (match p
         ['add1 (Inst 'i64.add (seq (compile-e e) (Const (imm->bits 1))))]
         ['sub1 (Inst 'i64.sub (seq (compile-e e) (Const (imm->bits 1))))] 
         ['zero? 
@@ -41,15 +41,16 @@
                 (Inst )
             ) 
         ]
-    ]
+    )
 )
 
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3)
-    (Inst 'if (seq (Result (i64))
+    (WatIf
         (Inst 'i64.ne (seq 
             (compile-e e1)
             (Const val-false)))
         (compile-e e2)
-        (compile-e e3)))
+        (compile-e e3)
+    )
 )
