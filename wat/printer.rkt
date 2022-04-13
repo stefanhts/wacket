@@ -151,30 +151,6 @@
         [(f64) "f64"]
         [x (parse-error "Unrecognized type; expected one of (i32), (i64), (f32), (f64), got:" x)]))
 
-(define (instruction->string i)
-    (let ((supported-instructions '(
-        i64.eq
-        i64.ne
-        i64.eqz
-        i64.lt_s
-        i64.gt_s
-        i64.le_s
-        i64.ge_s
-        i64.add
-        i64.sub
-        i64.mul
-        i64.div_s
-        i64.and
-        i64.or
-        i64.xor
-        i64.extend_i32_s
-        local.set
-        local.get
-        if
-    ))) (match i
-        [(? (lambda (x) (memq x supported-instructions)) i) (symbol->string i)]
-        [x (parse-error "Unsupported instruction:" x)])))
-
 (define (parse-funcsig s ntabs)
     (match s
         [(FuncSignature n ps (Result t)) (string-append
