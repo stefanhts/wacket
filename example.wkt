@@ -1,0 +1,2 @@
+#lang wackett
+(if #f 2 #t)

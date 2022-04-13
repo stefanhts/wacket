@@ -57,6 +57,22 @@ This should allow for the re-use of much of the compiler infrastructure, like th
 
 [class github repo](https://github.com/cmsc430)
 
+### note on .wkt files
+
+They start with `#lang wacket`. This caused my syntax checker to tell me:
+
+```
+standard-module-name-resolver: collection not found
+  for module path: wacket/lang/reader
+  collection: "wacket/lang"
+  in collection directories:
+   /home/chris/.racket/8.4/collects
+   /usr/share/racket/collects/
+```
+
+To fix this problem, I navigated to `/usr/share/racket/collects/` and ran the command `sudo ln -s racket/ wacket`.
+This tricks the syntax checker because it looks at `/usr/share/racket/collects/wacket`, but it's really just a symbolic link to `/usr/share/racket/collects/racket`.
+
 ## TODO
 
 - How to implement heap storage
