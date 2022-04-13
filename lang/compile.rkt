@@ -22,8 +22,25 @@
 
 (define (compile-prim1 p e)
     [match p
-        ('add1 (Inst 'i64.add (seq (compile-e e) (Const (imm->bits 1)))))
-        ('sub1 (Inst 'i64.sub (seq (compile-e e) (Const (imm->bits 1))))) 
+        ['add1 (Inst 'i64.add (seq (compile-e e) (Const (imm->bits 1))))]
+        ['sub1 (Inst 'i64.sub (seq (compile-e e) (Const (imm->bits 1))))] 
+        ['zero? 
+            (WatIf 
+            (Inst 'i64.eqz 
+                (seq (compile-e)))
+                (Const val-true)
+                (Const val-false))]
+        ['char?
+            (WatIf (Inst 'i64.eqz (seq (Inst 'i64.xor (Inst 'i64.and (compile-e p) (compile-e mask-char)) (compile-e type-char))))
+                (Const val-true) 
+                (Const val-false)
+            )
+        ]
+        ['char->integer
+            (seq
+                (Inst )
+            ) 
+        ]
     ]
 )
 
