@@ -29,18 +29,18 @@ const val_empty = ((4n << char_shift) | nonchar_type_tag)
 
 
 function run(){
-    const input = document.getElementById("inputbox").value
-    const output = document.getElementById("res")
-    console.log("test works");
+    const input = document.getElementById("inputbox").value;
+    const output = document.getElementById("res");
     (async () => {
+        console.log("running 'run'");
         const response = await fetch('main.wasm');
         const buffer = await response.arrayBuffer();
         const module = new WebAssembly.Module(buffer);
         const instance = new WebAssembly.Instance(module);
         const rawResult = instance.exports.main(BigInt(input));
-        // console.log(rawResult);
+        console.log("raw: ", rawResult);
         const result = unwrap(rawResult);
-        console.log(result);
+        console.log("result: ", result);
         output.innerHTML = result;
       })();
 }
@@ -94,7 +94,7 @@ function val_typeof(x){
 }
 
 function unwrap(raw){
-  // console.log(val_typeof(raw))
+  console.log("val_typeof: ", val_typeof(raw))
   switch (val_typeof(raw)){
     case typesEnum.T_INT:
       return val_unwrap_int(raw)
@@ -141,7 +141,31 @@ function str_char(c){
 }
 
 function val_unwrap_char(raw){
-  // TODO:
+  console.log("unwrapping char!")
+  let shifted = raw >> char_shift
+  let charStarter = "#\\";
+  switch (shifted) {
+    case 0:
+      return charStarter + "nul";
+    case 8:
+      return charStarter + "backspace";
+    case 9:
+      return charStarter + "tab";
+    case 10:
+      return charStarter + "newline";
+    case 11:
+      return charStarter + "vtab";
+    case 12:
+      return charStarter + "page";
+    case 13:
+      return charStarter + "return";
+    case 32:
+      return charStarter + "space";
+    case 127:
+      return charStarter + "rubout";
+    default:
+      return charStarter + String.fromCodePoint(Number(shifted));
+  }
 }
 
 function val_unwrap_int(raw){
