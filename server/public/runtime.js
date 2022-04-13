@@ -143,28 +143,29 @@ function str_char(c){
 function val_unwrap_char(raw){
   console.log("unwrapping char!")
   let shifted = raw >> char_shift
-  let charStarter = "#\\";
+  let charStarter = "'";
+  let charEnder = "'"
   switch (shifted) {
     case 0:
-      return charStarter + "nul";
+      return charStarter + "nul" + charEnder;
     case 8:
-      return charStarter + "backspace";
+      return charStarter + "backspace" + charEnder;
     case 9:
-      return charStarter + "tab";
+      return charStarter + "tab" + charEnder;
     case 10:
-      return charStarter + "newline";
+      return charStarter + "newline" + charEnder;
     case 11:
-      return charStarter + "vtab";
+      return charStarter + "vtab" + charEnder;
     case 12:
-      return charStarter + "page";
+      return charStarter + "page" + charEnder;
     case 13:
-      return charStarter + "return";
+      return charStarter + "return" + charEnder;
     case 32:
-      return charStarter + "space";
+      return charStarter + "space" + charEnder;
     case 127:
-      return charStarter + "rubout";
+      return charStarter + "rubout" + charEnder;
     default:
-      return charStarter + String.fromCodePoint(Number(shifted));
+      return charStarter + String.fromCodePoint(Number(shifted)) + charEnder;
   }
 }
 
