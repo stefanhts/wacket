@@ -22,34 +22,24 @@
 
 (define (compile-prim1 p e)
     (match p
-        ['add1 (Inst 'i64.add (seq (compile-e e) (Const (imm->bits 1))))]
-        ['sub1 (Inst 'i64.sub (seq (compile-e e) (Const (imm->bits 1))))] 
+        ['add1 (Add (compile-e e) (Const (imm->bits 1)))]
+        ['sub1 (Sub (compile-e e) (Const (imm->bits 1)))] 
         ['zero? 
-            (WatIf 
-            (Inst 'i64.eqz 
-                (seq (compile-e)))
+            (WatIf (Eqz (compile-e))
                 (Const val-true)
                 (Const val-false))]
         ['char?
-            (WatIf (Inst 'i64.eqz (seq (Inst 'i64.xor (Inst 'i64.and (compile-e p) (compile-e mask-char)) (compile-e type-char))))
+            (WatIf (Eqz (Xor (And (compile-e p) (Const mask-char)) (Const type-char)))
                 (Const val-true) 
                 (Const val-false)
             )
-        ]
-        ['char->integer
-            (seq
-                (Inst )
-            ) 
         ]
     )
 )
 
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3)
-    (WatIf
-        (Inst 'i64.ne (seq 
-            (compile-e e1)
-            (Const val-false)))
+    (WatIf (Ne (compile-e e1) (Const val-false))
         (compile-e e2)
         (compile-e e3)
     )
