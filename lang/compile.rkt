@@ -17,7 +17,7 @@
     (match p
         ['add1 (Add (compile-e e) (Const (imm->bits 1)))]
         ['sub1 (Sub (compile-e e) (Const (imm->bits 1)))] 
-        ['zero? 
+        ['zero?
             (WatIf (Eqz (compile-e))
                 (Const val-true)
                 (Const val-false))]
