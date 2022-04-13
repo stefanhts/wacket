@@ -27,6 +27,11 @@ const val_eof = ((2n << char_shift) | nonchar_type_tag)
 const val_void = ((3n << char_shift) | nonchar_type_tag)
 const val_empty = ((4n << char_shift) | nonchar_type_tag)
 
+let ENCODER = new TextEncoder()
+let DECODER = new TextDecoder()
+let STDIN = []
+let STDOUT = []
+let result = ""
 
 function run(){
     const input = document.getElementById("inputbox").value;
@@ -37,9 +42,11 @@ function run(){
         const buffer = await response.arrayBuffer();
         const module = new WebAssembly.Module(buffer);
         const instance = new WebAssembly.Instance(module);
-        const rawResult = instance.exports.main(BigInt(input));
+        STDIN = ENCODER.encode(BigInt(input))
+        const rawResult = instance.exports.main();
         console.log("raw: ", rawResult);
-        const result = unwrap(rawResult);
+        STDOUT += ENCODER.encode(rawResult) 
+        result = unwrap(DECODER.decode(STDOUT));
         console.log("result: ", result);
         output.innerHTML = result;
       })();
@@ -195,4 +202,22 @@ function val_wrap_eof(){
 
 function val_wrap_void(){
   return val_void
+}
+
+function readByte(){
+    if(STDIN.length < 1) {
+      return val_eof
+    }
+    return STDIN.shift()
+}
+
+function writeByte(byte){
+    STDOUT.push(byte)     
+}
+
+function peekByte(){
+    if(STDIN.length < 1) {
+      return val_eof
+    }
+    return STDIN[0]
 }
