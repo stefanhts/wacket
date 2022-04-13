@@ -9,4 +9,3 @@
     (wat-display (compile (parse (read p))))
     (close-input-port p)))
 )
-

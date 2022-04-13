@@ -95,6 +95,11 @@
         ['() ""]
         [(cons (Result t) is) (string-append (tabs ntabs) "(result " (wattype->string t) ")\n" (parse-instruction-list is ntabs))]
         [(cons (Name n) is) (string-append (tabs ntabs) "$" (symbol->string n) "\n" (parse-instruction-list is ntabs))]
+        [(cons (WatIf p t f) is) (string-append
+            (tabs ntabs) "(if (result i64)\n"
+            (parse-instruction-list (list p t f) (add1 ntabs))
+            (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs))]
         [(cons (Inst n '()) is) (string-append          ;; no arguments
             (tabs ntabs) "(" (instruction->string n) ")\n"
             (parse-instruction-list is ntabs))]
