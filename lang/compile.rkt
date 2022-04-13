@@ -10,6 +10,7 @@
     (match e
         [(Int n) (Const (imm->bits n))]
         [(Bool b) (Const (imm->bits b))]
+        [(Char c) (Const (imm->bits c))]
         [(Prim1 p e) (compile-prim1 p e)]
         [(If e1 e2 e3) (compile-if e1 e2 e3)]))
 
@@ -26,9 +27,9 @@
                 (Const val-true) 
                 (Const val-false))]
         ['char->integer
-            (seq (Sal (Sar (compile-e e) char-shift) int-shift))]
+            (Sal (Sar (compile-e e) (Const char-shift)) (Const int-shift))]
         ['integer->char
-            (Xor (Sal (Sar (compile-e e) int-shift) char-shift) type-char)]))
+            (Xor (Sal (Sar (compile-e e) (Const int-shift)) (Const char-shift)) (Const type-char))]))
 
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3)
