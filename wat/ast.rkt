@@ -27,11 +27,50 @@
 (struct f64 () #:prefab)
 ;; type Body = (Body (Listof Instructions))
 (struct Body (is) #:prefab)
-;; type Instruction = (Inst (n [list of Instructions]))
-(struct Inst (n is) #:prefab)
+
+;; WASM Instructions
+
 ;; type WatIf = (WatIf (Instruction Instruction Instruction))
-;; syntactic sugar for (Inst 'if (list (Result (i64)) (Instruction) (Instruction) (Instruction)))
-(struct WatIf (p t f))
+(struct WatIf (p t f) #:prefab)
+
+(struct Eq (i1 i2) #:prefab)
+
+(struct Ne (i1 i2) #:prefab)
+
+(struct Eqz (i) #:prefab)
+
+(struct Lt (i1 i2) #:prefab)
+
+(struct Gt (i1 i2) #:prefab)
+
+(struct Le (i1 i2) #:prefab)
+
+(struct Ge (i1 i2) #:prefab)
+
+(struct Add (i1 i2) #:prefab)
+
+(struct Sub (i1 i2) #:prefab)
+
+(struct Mul (i1 i2) #:prefab)
+
+(struct Div (i1 i2) #:prefab)
+
+(struct And (i1 i2) #:prefab)
+
+(struct Or (i1 i2) #:prefab)
+
+(struct Xor (i1 i2) #:prefab)
+
+(struct Sar (i n) #:prefab)
+
+(struct Sal (i n) #:prefab)
+
+(struct 32->64 (i) #:prefab)
+
+(struct GetLocal (n) #:prefab)
+
+(struct SetLocal (n i) #:prefab)
+
 ;; type Name = (Name (n))
 (struct Name (n) #:prefab)
 ;; type Const = (Const (n))
