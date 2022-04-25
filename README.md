@@ -137,3 +137,11 @@ type Instruction = (Inst name [list of Instructions])
 type Const = (Const v)
 
 ```
+
+## Memory Accessing
+
+An instance of memory in WASM is allocated in blocks of 64KB of storage, so a single block should be more than enough
+for Wacket.
+
+I found [this article](https://www.oreilly.com/library/view/webassembly-the-definitive/9781492089834/ch04.html) to have
+the best (and really only) example of manipulating memory in `.wat` files.
