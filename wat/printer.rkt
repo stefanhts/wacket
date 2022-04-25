@@ -44,7 +44,7 @@
         ['() (parse-error-noarg "Empty import")]
         [(list '() '() '()) (parse-error-noarg "Import missing names")]
         [(list m f fs) (string-append
-            (tabs ntabs) "(import \"" (symbol->string m) "\" \"" (symbol->string f) "\" " (parse-funcsig fs ntabs) ")\n" 
+            (tabs ntabs) "(import \"" (symbol->string m) "\" \"" (symbol->string f) "\" " (parse-import-funcsig fs ntabs) ")\n" 
         )]
 
     )
@@ -52,9 +52,19 @@
 (define (parse-import-funcsig s ntabs)
     (match s
         [(FuncSignature n ps (Result t)) (string-append
-           "(func $" (symbol->string n) (parse-params ps ntabs) " (result " (wattype->string t) "))" 
+           "(func $" (symbol->string n) (parse-import-params ps) " (result " (wattype->string t) "))" 
         )]
         [x (parse-error "Should be FuncSignature (input), was:" x)]))
+
+(define (parse-import-params ps)
+    (match ps 
+        ['() ""]
+        [ps (string-append " (param " (parse-import-params-helper ps) ")")]))
+
+(define (parse-import-params-helper ps)
+    (match ps 
+        [(cons (Param _ t) '()) (wattype->string t)]
+        [(cons (Param _ t) ps) (string-append (wattype->string t) " " (parse-import-params-helper ps))]))
 
 (define (parse-export n fs ntabs) 
     (match (cons n fs)

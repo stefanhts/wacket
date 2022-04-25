@@ -2,7 +2,10 @@
 (require "ast.rkt" "../wat/ast.rkt" "types.rkt")
 (provide compile)
 (define (compile e)
-        (Module (list (Export 'main (ExportFuncSignature 'main)) 
+        (Module (list (Import 'io 'read (FuncSignature 'readByte '() (Result (i64))))
+                      (Import 'io 'write (FuncSignature 'writeByte (list (Param '_ (i64))) (Result (i64))))
+                      (Import 'io 'peek (FuncSignature 'peekByte '() (Result (i64))))
+                      (Export 'main (ExportFuncSignature 'main)) 
                       (Func (FuncSignature 'main '() (Result (i64))) '() 
                         (Body (seq (compile-e e)))))))
 
