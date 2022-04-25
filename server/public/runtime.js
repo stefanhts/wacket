@@ -32,6 +32,7 @@ let DECODER = new TextDecoder()
 let STDIN = []
 let STDOUT = []
 let result = ""
+const importObject = { io: {read: readByte, write: writeByte, peek: peekByte}};
 
 function run(){
     const input = document.getElementById("inputbox").value;
@@ -41,8 +42,11 @@ function run(){
         const response = await fetch('main.wasm');
         const buffer = await response.arrayBuffer();
         const module = new WebAssembly.Module(buffer);
-        const instance = new WebAssembly.Instance(module);
-        STDIN = ENCODER.encode(BigInt(input))
+        const instance = new WebAssembly.Instance(module, importObject);
+        console.log(input);
+        console.log(typeof input);
+        STDIN = ENCODER.encode(BigInt(input));
+        console.log(STDIN);
         const rawResult = instance.exports.main();
         console.log("raw: ", rawResult);
         STDOUT += ENCODER.encode(rawResult) 
@@ -212,7 +216,8 @@ function readByte(){
 }
 
 function writeByte(byte){
-    STDOUT.push(byte)     
+    STDOUT.push(byte)
+    return byte    
 }
 
 function peekByte(){
