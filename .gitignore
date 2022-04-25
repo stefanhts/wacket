@@ -1,4 +1,3 @@
 server/public/main.wasm
 .DS_Store
 node_modules
-*.wat
