@@ -37,9 +37,10 @@ function run() {
     const buffer = await response.arrayBuffer();
     const module = new WebAssembly.Module(buffer);
     const instance = new WebAssembly.Instance(module);
-    const rawResult = instance.exports.main(BigInt(input));
+    const rawResult = instance.exports.main(42);
     const memory = instance.exports.memory;
-    console.log(memory)
+    var i32 = new Uint32Array(memory.buffer)
+    console.log(i32)
     console.log("raw: ", rawResult);
     const result = unwrap(rawResult);
     console.log("result: ", result);
