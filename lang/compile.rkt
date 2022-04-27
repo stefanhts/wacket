@@ -15,7 +15,7 @@
         [(Prim1 p e) (compile-prim1 p e c)]
         [(Prim2 p e1 e2) (compile-prim2 p e1 e2 c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
-        [(Let vs xs) (compile-let vs xs c)]
+        [(Let x e1 e2 c) (compile-let x e1 e2 c)]
         ))
 
 (define (compile-var v c)
@@ -51,11 +51,30 @@
             (Xor (Sal (Sar (compile-e e c) (Const int-shift)) (Const char-shift)) (Const type-char))]))
 
 (define (compile-prim2 p e1 e2 c)
-    ;; TODO: add symbols and implement this
+   (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)))
+        (match p
+            ['eq? (Eq e1 e2)]
+            ['< (Lt e1 e2)]
+            ['> (Gt e1 e2)]
+            ['>= (Ge e1 e2)]
+            ['<= (Le e1 e2)]
+            ['add (Add e1 e2)]
+            ['sub (Sub e1 e2)]
+            ['mult (Mult e1 e2)]
+            ['div (Div e1 e2)]
+            ['or (Or e1 e2)]
+            ['and (And e1 e2)]
+            ['xor (Xor e1 e2)]
+            ['>> (Sar e1 e2)]
+            ['<< (Sal e1 e2)]
+            [_ (error "compile error: unexpec")]
+        )
+   ) 
 )
 
-(define (compile-let vs xs c)
-    ;; TODO: compile xs and bind to vs
+(define (compile-let x e1 e2 c)
+    (seq (SetLocal (Name x) (compile-e e1 c))
+         (compile-e e2 c))
 )
 
 ;; Expr Expr Expr -> Asm
