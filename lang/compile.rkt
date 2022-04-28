@@ -19,22 +19,30 @@
         ['add1 (Add (compile-e e) (Const (imm->bits 1)))]
         ['sub1 (Sub (compile-e e) (Const (imm->bits 1)))] 
         ['zero?
-            (WatIf (Eqz (compile-e))
+            (WatIf (Eqz (compile-e e))
                 (Const val-true)
                 (Const val-false))]
-        ['char?
-            (WatIf (Eqz (Xor (And (compile-e p) (Const mask-char)) (Const type-char)))
-                (Const val-true) 
-                (Const val-false))]
+        ['char? (compile-is-type mask-char type-char e)]
         ['char->integer
             (Sal (Sar (compile-e e) (Const char-shift)) (Const int-shift))]
         ['integer->char
-            (Xor (Sal (Sar (compile-e e) (Const int-shift)) (Const char-shift)) (Const type-char))]))
+            (Xor (Sal (Sar (compile-e e) (Const int-shift)) (Const char-shift)) (Const type-char))]
+        ['box 'err]
+        ['unbox 'err]
+        ['box? 'err]
+            ))
 
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3)
     (WatIf (Ne (compile-e e1) (Const val-false))
         (compile-e e2)
         (compile-e e3)
+    )
+)
+
+(define (compile-is-type mask type e)
+    (WatIf (Eqz (Xor (And (compile-e e) (Const mask)) (Const type)))
+        (Const val-true)
+        (Const val-false)
     )
 )
