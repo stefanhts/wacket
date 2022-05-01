@@ -156,3 +156,4 @@ Some specifics to note:
   simply another thing to keep in mind.
 - Each value still occupies 8 "positions" on the pointer, so we need to increment by 8 each time. This means the logic
   is actually pretty much the same as in racket.
+- Just like in class, the cons cell starts with the `cdr` and is followed by the `car` 8 bytes later.
