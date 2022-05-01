@@ -73,6 +73,8 @@
 
 (struct 32->64 (i) #:prefab)
 
+(struct 64->32 (i) #:prefab)
+
 (struct GetLocal (n) #:prefab)
 
 (struct SetLocal (n i) #:prefab)
@@ -83,7 +85,7 @@
 ;; type LoadHeap = (Type Index)
 (struct LoadHeap (t i) #:prefab)
 ;; type Store-Heap = (Type Index Value)
-(struct StoreHeap (t i v))
+(struct StoreHeap (t i v) #:prefab)
 
 ;; type Name = (Name (n))
 (struct Name (n) #:prefab)
