@@ -9,10 +9,15 @@
     [(? boolean?) (Bool s)]
     [(? char?)    (Char s)]
     [(list (? op1? o) e)  (Prim1 o (parse e))]
+    [(list (? op2? o) e1 e2) (Prim2 o (parse e1) (parse e2))]
     [(list 'if e1 e2 e3)
       (If (parse e1) (parse e2) (parse e3))]
     [_ (error "Parse error")]))
   
 ;; Any -> Boolean
 (define (op1? x)
-  (memq x '(add1 sub1 zero? char? integer->char char->integer box unbox box?)))
+  (memq x '(add1 sub1 zero? char? integer->char char->integer box unbox box? car cdr cons?)))
+
+;; Any -> Boolean
+(define (op2? x)
+  (memq x '(cons)))

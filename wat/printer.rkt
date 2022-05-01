@@ -117,7 +117,7 @@
             (parse-instruction-list is ntabs))]
         [(cons (WatIf p t f) is) (string-append
             (tabs ntabs) "(if (result i64)\n"
-            (parse-instruction-list (list p t f) (add1 ntabs))
+            (parse-instruction-list (seq p t f) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
         [(cons (ConstT t n) is) (string-append
@@ -135,25 +135,25 @@
         [(cons (GetLocal (Name n)) is) (string-append (tabs ntabs) "(local.get $" n ")\n"
             (parse-instruction-list is ntabs))]
         [(cons (SetLocal (Name n) i) is) (string-append (tabs ntabs) "(local.set $" n "\n"
-            (parse-instruction-list (list i) (add1 ntabs))
+            (parse-instruction-list (seq i) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
         [(cons (GetGlobal (Name n)) is) (string-append (tabs ntabs) "(global.get $" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs)
         )]
         [(cons (SetGlobal (Name n) i) is) (string-append (tabs ntabs) "(global.set $" (symbol->string n) "\n"
-            (parse-instruction-list (list i) (add1 ntabs))
+            (parse-instruction-list (seq i) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs)
         )]
         [(cons (LoadHeap t i) is) (string-append (tabs ntabs) "(" (wattype->string t) ".load\n" 
-            (parse-instruction-list (list i) (add1 ntabs))
+            (parse-instruction-list (seq i) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs)
         )]
         [(cons (StoreHeap t i v) is) (string-append (tabs ntabs) "(" (wattype->string t) ".store\n" 
-            (parse-instruction-list (list i) (add1 ntabs)) ; The index we're storing at.
-            (parse-instruction-list (list v) (add1 ntabs)) ; The value to store.
+            (parse-instruction-list (seq i) (add1 ntabs)) ; The index we're storing at.
+            (parse-instruction-list (seq v) (add1 ntabs)) ; The value to store.
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs)
         )]

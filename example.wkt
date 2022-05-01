@@ -1,2 +1,2 @@
 #lang wacket
-(unbox (box 42))
+(cons 420 (cons 69 (cons 42 4200)))

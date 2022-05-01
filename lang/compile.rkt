@@ -15,6 +15,7 @@
         [(Bool b) (Const (imm->bits b))]
         [(Char c) (Const (imm->bits c))]
         [(Prim1 p e) (compile-prim1 p e)]
+        [(Prim2 p e1 e2) (compile-prim2 p e1 e2)]
         [(If e1 e2 e3) (compile-if e1 e2 e3)]))
 
 (define (compile-prim1 p e)
@@ -30,24 +31,35 @@
             (Sal (Sar (compile-e e) (Const char-shift)) (Const int-shift))]
         ['integer->char
             (Xor (Sal (Sar (compile-e e) (Const int-shift)) (Const char-shift)) (Const type-char))]
-        ['box (store-in-heap e type-box)]
-        ['unbox (load-from-heap e type-box)]
+        ['box (store-in-heap e type-box #t)]
+        ['unbox (load-from-heap e type-box (Const 0))]
         ['box? (compile-is-type ptr-mask type-box e)]
-        ))
+        ['car (load-from-heap e type-cons (Const 8))]
+        ['cdr (load-from-heap e type-cons (Const 0))]
+        ['cons? (compile-is-type ptr-mask type-cons e)]
+))
+
+(define (compile-prim2 p e1 e2)
+    (match p
+        ['cons (seq
+            (store-in-heap e2 type-cons #t)
+            (store-in-heap e1 0 #f)
+        )]   
+))
 
 
 ;; Helper function for storing a value on the heap and pushing the masked pointer to it onto the stack.
-(define (store-in-heap e type)
+(define (store-in-heap e type return-address?)
     (seq
         (StoreHeap (i64) (GetGlobal (Name heap-name)) (compile-e e))
-        (Xor (32->64 (GetGlobal (Name heap-name))) (Const type))
+        (if return-address? (Xor (32->64 (GetGlobal (Name heap-name))) (Const type)) '())
         (SetGlobal (Name heap-name) (AddT (i32) (GetGlobal (Name heap-name)) (ConstT (i32) 8))))
 )
 
 ;; Helper function for getting a value from the heap and pushing it's value to the stack.
-(define (load-from-heap e type)
+(define (load-from-heap e type offset)
     (seq
-        (LoadHeap (i64) (64->32 (Xor (Const type) (compile-e e))))
+        (LoadHeap (i64) (64->32 (Add offset (Xor (Const type) (compile-e e)))))
     ))
 
 ;; Expr Expr Expr -> Asm
