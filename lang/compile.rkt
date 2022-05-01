@@ -4,6 +4,7 @@
 (define heap-name (gensym 'heap))
 (define (compile e)
         (Module (list (Export 'main (ExportFuncSignature 'main))
+                      (MemoryExport)
                       (Global heap-name (i32) (Const 0))
                       (Func (FuncSignature 'main '() (Result (i64))) '() 
                         (Body (seq (compile-e e)))))))
@@ -39,8 +40,8 @@
 (define (store-in-heap e type)
     (list 
     (StoreHeap (i64) (GetGlobal (Name heap-name)) (compile-e e))
-    (Xor (GetGlobal (Name heap-name)) (Const type))
-    (SetGlobal (Name heap-name) (Add (GetGlobal (Name heap-name)) (Const 8))))
+    (Xor (32->64 (GetGlobal (Name heap-name))) (Const type))
+    (SetGlobal (Name heap-name) (AddT (i32) (GetGlobal (Name heap-name)) (ConstT (i32) 8))))
 )
 
 ;; Expr Expr Expr -> Asm
