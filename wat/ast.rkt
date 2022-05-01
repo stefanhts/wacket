@@ -6,6 +6,8 @@
 (struct Module (ds) #:prefab)
 ;; type Import = (Import (modulename funcname FuncSignature)) 
 (struct Import (m f fs) #:prefab)
+;; type MemoryExport = ()
+(struct MemoryExport () #:prefab)
 ;; type Export = (Export (name ExportFuncSignature))
 (struct Export (n d) #:prefab)
 ;; type Global = (Global (name type Const))
@@ -48,7 +50,9 @@
 (struct Le (i1 i2) #:prefab)
 
 (struct Ge (i1 i2) #:prefab)
-
+;; Add which takes an arbitrary type.
+(struct AddT (t i1 i2) #:prefab)
+;; Convenience for adding 64 bit integers.
 (struct Add (i1 i2) #:prefab)
 
 (struct Sub (i1 i2) #:prefab)
@@ -83,6 +87,9 @@
 
 ;; type Name = (Name (n))
 (struct Name (n) #:prefab)
+
+;; Const of an arbitrary type.
+(struct ConstT (t n) #:prefab)
 ;; type Const = (Const (n))
 (struct Const (n) #:prefab)
 ;; type Start = (Start (funcidx))

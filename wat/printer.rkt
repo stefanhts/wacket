@@ -27,6 +27,10 @@
         [(cons (Import m f fs) ds) (string-append 
             (parse-import m f fs ntabs)
             (parse-definitions ds ntabs))]
+        [(cons (MemoryExport) ds) (string-append
+            (tabs ntabs) "(memory (export \"memory\") 1)"
+            (parse-definitions ds ntabs)
+        )]
         [(cons (Export n d) ds) (string-append
             (parse-export n d ntabs)
             (parse-definitions ds ntabs))]
@@ -116,6 +120,10 @@
             (parse-instruction-list (list p t f) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
+        [(cons (ConstT t n) is) (string-append
+            (tabs ntabs) "(" (wattype->string t) ".const " (number->string n) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
         [(cons (Const n) is) (string-append
             (tabs ntabs) "(i64.const " (number->string n) ")\n"
             (parse-instruction-list is ntabs))]
@@ -138,12 +146,12 @@
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs)
         )]
-        [(cons (LoadHeap t i) is) (string-append (tabs ntabs) "(" (wattype->string t) ".load" 
+        [(cons (LoadHeap t i) is) (string-append (tabs ntabs) "(" (wattype->string t) ".load\n" 
             (parse-instruction-list (list i) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs)
         )]
-        [(cons (StoreHeap t i v) is) (string-append (tabs ntabs) "(" (wattype->string t) ".store" 
+        [(cons (StoreHeap t i v) is) (string-append (tabs ntabs) "(" (wattype->string t) ".store\n" 
             (parse-instruction-list (list i) (add1 ntabs)) ; The index we're storing at.
             (parse-instruction-list (list v) (add1 ntabs)) ; The value to store.
             (tabs ntabs) ")\n"
@@ -161,6 +169,9 @@
         [(Gt  i1 i2) (list "i64.gt_s"  (list i1 i2))]
         [(Le  i1 i2) (list "i64.le_s"  (list i1 i2))]
         [(Ge  i1 i2) (list "i64.ge_s"  (list i1 i2))]
+        [(AddT t i1 i2) (list 
+            (string-append (wattype->string t) ".add") 
+            (list i1 i2))]
         [(Add i1 i2) (list "i64.add"   (list i1 i2))]
         [(Sub i1 i2) (list "i64.sub"   (list i1 i2))]
         [(Mul i1 i2) (list "i64.mul"   (list i1 i2))]
