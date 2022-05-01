@@ -79,7 +79,7 @@
     (match i
         [(Const i) (string-append 
         (tabs ntabs)
-        "(global $" (symbol->string n) " (mut " (wattype->string t) ") (i64.const " (number->string i) ")\n")]
+        "(global $" (symbol->string n) " (mut " (wattype->string t) ") (i64.const " (number->string i) "))\n")]
         [x (parse-error "Expected const, got " x)]
 ))
 
