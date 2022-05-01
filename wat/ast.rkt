@@ -8,6 +8,8 @@
 (struct Import (m f fs) #:prefab)
 ;; type Export = (Export (name ExportFuncSignature))
 (struct Export (n d) #:prefab)
+;; type Global = (Global (name type Const))
+(struct Global (n t i) #:prefab)
 ;; type Func = (Func (FuncSignature (Listof Locals) Body))
 (struct Func (s ls b) #:prefab)
 ;; type FuncSignature = (FuncSignature (name? (Listof Params) Result))
@@ -70,6 +72,8 @@
 (struct GetLocal (n) #:prefab)
 
 (struct SetLocal (n i) #:prefab)
+
+(struct GetGlobal (n) #:prefab)
 
 ;; type Name = (Name (n))
 (struct Name (n) #:prefab)

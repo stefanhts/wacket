@@ -2,7 +2,8 @@
 (require "ast.rkt" "../wat/ast.rkt" "types.rkt")
 (provide compile)
 (define (compile e)
-        (Module (list (Export 'main (ExportFuncSignature 'main)) 
+        (Module (list (Export 'main (ExportFuncSignature 'main))
+                      (Global 'heap (i64) (Const 0))
                       (Func (FuncSignature 'main '() (Result (i64))) '() 
                         (Body (seq (compile-e e)))))))
 
@@ -29,8 +30,8 @@
             (Xor (Sal (Sar (compile-e e) (Const int-shift)) (Const char-shift)) (Const type-char))]
         ['box 'err]
         ['unbox 'err]
-        ['box? 'err]
-            ))
+        ['box? (compile-is-type ptr-mask type-box)]
+        ))
 
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3)

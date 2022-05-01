@@ -30,6 +30,9 @@
         [(cons (Export n d) ds) (string-append
             (parse-export n d ntabs)
             (parse-definitions ds ntabs))]
+        [(cons (Global n t i) ds) (string-append
+            (parse-global n t i ntabs)
+            (parse-definitions ds ntabs))]
         [(cons (Func s ls b) ds) (string-append
             (parse-func s ls b ntabs)
             (parse-definitions ds ntabs))]
@@ -71,6 +74,14 @@
            "(func $" (symbol->string n) ")" 
         )]
         [x (parse-error "Expected ExportFuncSignature, got:" x)]))
+
+(define (parse-global n t i ntabs)
+    (match i
+        [(Const i) (string-append 
+        (tabs ntabs)
+        "(global $" (symbol->string n) " (mut " (wattype->string t) ") (i64.const " (number->string i) ")\n")]
+        [x (parse-error "Expected const, got " x)]
+))
 
 (define (parse-func s ls b ntabs) 
     (string-append
