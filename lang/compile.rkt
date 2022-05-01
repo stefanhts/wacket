@@ -1,9 +1,10 @@
 #lang racket
 (require "ast.rkt" "../wat/ast.rkt" "types.rkt")
 (provide compile)
+(define heap-name (gensym 'heap))
 (define (compile e)
         (Module (list (Export 'main (ExportFuncSignature 'main))
-                      (Global 'heap (i64) (Const 0))
+                      (Global heap-name (i32) (Const 0))
                       (Func (FuncSignature 'main '() (Result (i64))) '() 
                         (Body (seq (compile-e e)))))))
 
@@ -28,10 +29,19 @@
             (Sal (Sar (compile-e e) (Const char-shift)) (Const int-shift))]
         ['integer->char
             (Xor (Sal (Sar (compile-e e) (Const int-shift)) (Const char-shift)) (Const type-char))]
-        ['box 'err]
+        ['box (store-in-heap e type-box)]
         ['unbox 'err]
         ['box? (compile-is-type ptr-mask type-box)]
         ))
+
+
+;; Helper function for storing a value on the heap and pushing the masked pointer to it onto the stack.
+(define (store-in-heap e type)
+    (list 
+    (StoreHeap (i64) (GetGlobal (Name heap-name)) (compile-e e))
+    (Xor (GetGlobal (Name heap-name)) (Const type))
+    (SetGlobal (Name heap-name) (Add (GetGlobal (Name heap-name)) (Const 8))))
+)
 
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3)

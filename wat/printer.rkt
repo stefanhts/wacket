@@ -79,7 +79,8 @@
     (match i
         [(Const i) (string-append 
         (tabs ntabs)
-        "(global $" (symbol->string n) " (mut " (wattype->string t) ") (i64.const " (number->string i) "))\n")]
+        "(global $" (symbol->string n) " (mut " (wattype->string t) ") (" (wattype->string t) ".const " 
+        (number->string i) "))\n")]
         [x (parse-error "Expected const, got " x)]
 ))
 
@@ -129,6 +130,25 @@
             (parse-instruction-list (list i) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
+        [(cons (GetGlobal (Name n)) is) (string-append (tabs ntabs) "(global.get $" (symbol->string n) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
+        [(cons (SetGlobal (Name n) i) is) (string-append (tabs ntabs) "(global.set $" (symbol->string n) "\n"
+            (parse-instruction-list (list i) (add1 ntabs))
+            (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
+        [(cons (LoadHeap t i) is) (string-append (tabs ntabs) "(" (wattype->string t) ".load" 
+            (parse-instruction-list (list i) (add1 ntabs))
+            (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
+        [(cons (StoreHeap t i v) is) (string-append (tabs ntabs) "(" (wattype->string t) ".store" 
+            (parse-instruction-list (list i) (add1 ntabs)) ; The index we're storing at.
+            (parse-instruction-list (list v) (add1 ntabs)) ; The value to store.
+            (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
         [(cons x _) (parse-error "Instruction not recognized:" x)]
         [x (parse-error "Expected instruction list, got:" x)]))
 
