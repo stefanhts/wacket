@@ -28,7 +28,7 @@
             (parse-import m f fs ntabs)
             (parse-definitions ds ntabs))]
         [(cons (MemoryExport) ds) (string-append
-            (tabs ntabs) "(memory (export \"memory\") 1)"
+            (tabs ntabs) "(memory (export \"memory\") 1)\n"
             (parse-definitions ds ntabs)
         )]
         [(cons (Export n d) ds) (string-append
@@ -163,26 +163,27 @@
 ;; Instruction struct -> (list string (list of Instructions))
 (define (instr-lit i)
     (match i
-        [(Eq  i1 i2) (list "i64.eq"    (list i1 i2))]
-        [(Ne  i1 i2) (list "i64.ne"    (list i1 i2))]
-        [(Lt  i1 i2) (list "i64.lt_s"  (list i1 i2))]
-        [(Gt  i1 i2) (list "i64.gt_s"  (list i1 i2))]
-        [(Le  i1 i2) (list "i64.le_s"  (list i1 i2))]
-        [(Ge  i1 i2) (list "i64.ge_s"  (list i1 i2))]
+        [(Eq  i1 i2) (list "i64.eq"    (seq i1 i2))]
+        [(Ne  i1 i2) (list "i64.ne"    (seq i1 i2))]
+        [(Lt  i1 i2) (list "i64.lt_s"  (seq i1 i2))]
+        [(Gt  i1 i2) (list "i64.gt_s"  (seq i1 i2))]
+        [(Le  i1 i2) (list "i64.le_s"  (seq i1 i2))]
+        [(Ge  i1 i2) (list "i64.ge_s"  (seq i1 i2))]
         [(AddT t i1 i2) (list 
             (string-append (wattype->string t) ".add") 
-            (list i1 i2))]
-        [(Add i1 i2) (list "i64.add"   (list i1 i2))]
-        [(Sub i1 i2) (list "i64.sub"   (list i1 i2))]
-        [(Mul i1 i2) (list "i64.mul"   (list i1 i2))]
-        [(Div i1 i2) (list "i64.div_s" (list i1 i2))]
-        [(And i1 i2) (list "i64.and"   (list i1 i2))]
-        [(Or  i1 i2) (list "i64.or"    (list i1 i2))]
-        [(Xor i1 i2) (list "i64.xor"   (list i1 i2))]
-        [(Sar i1 i2) (list "i64.shr_s" (list i1 i2))]
-        [(Sal i1 i2) (list "i64.shl"   (list i1 i2))]
-        [(Eqz    i1) (list "i64.eqz"          (list i1))]
-        [(32->64 i1) (list "i64.extend_i32_s" (list i1))]
+            (seq i1 i2))]
+        [(Add i1 i2) (list "i64.add"   (seq i1 i2))]
+        [(Sub i1 i2) (list "i64.sub"   (seq i1 i2))]
+        [(Mul i1 i2) (list "i64.mul"   (seq i1 i2))]
+        [(Div i1 i2) (list "i64.div_s" (seq i1 i2))]
+        [(And i1 i2) (list "i64.and"   (seq i1 i2))]
+        [(Or  i1 i2) (list "i64.or"    (seq i1 i2))]
+        [(Xor i1 i2) (list "i64.xor"   (seq i1 i2))]
+        [(Sar i1 i2) (list "i64.shr_s" (seq i1 i2))]
+        [(Sal i1 i2) (list "i64.shl"   (seq i1 i2))]
+        [(Eqz    i1) (list "i64.eqz"          (seq i1))]
+        [(32->64 i1) (list "i64.extend_i32_s" (seq i1))]
+        [(64->32 i1) (list "i32.wrap_i64"     (seq i1))]
         [_ #f]))
 
 (define (wattype->string t)

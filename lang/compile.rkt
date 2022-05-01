@@ -31,18 +31,24 @@
         ['integer->char
             (Xor (Sal (Sar (compile-e e) (Const int-shift)) (Const char-shift)) (Const type-char))]
         ['box (store-in-heap e type-box)]
-        ['unbox 'err]
-        ['box? (compile-is-type ptr-mask type-box)]
+        ['unbox (load-from-heap e type-box)]
+        ['box? (compile-is-type ptr-mask type-box e)]
         ))
 
 
 ;; Helper function for storing a value on the heap and pushing the masked pointer to it onto the stack.
 (define (store-in-heap e type)
-    (list 
-    (StoreHeap (i64) (GetGlobal (Name heap-name)) (compile-e e))
-    (Xor (32->64 (GetGlobal (Name heap-name))) (Const type))
-    (SetGlobal (Name heap-name) (AddT (i32) (GetGlobal (Name heap-name)) (ConstT (i32) 8))))
+    (seq
+        (StoreHeap (i64) (GetGlobal (Name heap-name)) (compile-e e))
+        (Xor (32->64 (GetGlobal (Name heap-name))) (Const type))
+        (SetGlobal (Name heap-name) (AddT (i32) (GetGlobal (Name heap-name)) (ConstT (i32) 8))))
 )
+
+;; Helper function for getting a value from the heap and pushing it's value to the stack.
+(define (load-from-heap e type)
+    (seq
+        (LoadHeap (i64) (64->32 (Xor (Const type) (compile-e e))))
+    ))
 
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3)

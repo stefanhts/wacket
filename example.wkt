@@ -1,2 +1,2 @@
 #lang wacket
-(box 1)
+(unbox (box 42))
