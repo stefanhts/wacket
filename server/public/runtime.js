@@ -41,6 +41,7 @@ function run() {
     const memory = instance.exports.memory;
     var i32 = new Uint32Array(memory.buffer)
     console.log(i32)
+    console.log(memory.buffer)
     console.log("raw: ", rawResult);
     const result = unwrap(rawResult);
     console.log("result: ", result);

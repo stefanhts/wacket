@@ -75,6 +75,12 @@
 
 (struct GetGlobal (n) #:prefab)
 
+(struct SetGlobal (n v) #:prefab)
+;; type LoadHeap = (Type Index)
+(struct LoadHeap (t i) #:prefab)
+;; type Store-Heap = (Type Index Value)
+(struct StoreHeap (t i v))
+
 ;; type Name = (Name (n))
 (struct Name (n) #:prefab)
 ;; type Const = (Const (n))

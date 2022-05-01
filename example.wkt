@@ -1,2 +1,2 @@
 #lang wacket
-(if (char? 1) (char->integer #\E) (integer->char 25991))
+(box 1)
