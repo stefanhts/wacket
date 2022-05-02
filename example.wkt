@@ -1,2 +1,2 @@
 #lang wacket
-(cons 420 (cons 69 (cons 42 4200)))
+(cdr (cdr (cdr (cons 1 (cons 10 (cons 100 1000))))))
