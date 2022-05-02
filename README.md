@@ -157,3 +157,5 @@ Some specifics to note:
 - Each value still occupies 8 "positions" on the pointer, so we need to increment by 8 each time. This means the logic
   is actually pretty much the same as in racket.
 - Just like in class, the cons cell starts with the `cdr` and is followed by the `car` 8 bytes later.
+- The `StoreHeap` struct requires the address to be on the stack beforehand. This is so the `car` and `cdr` can be
+  stored right next to each other in memory.
