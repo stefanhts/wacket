@@ -65,10 +65,9 @@
 (define (store-box e)
     (seq
         (get-tagged-heap-address type-box)
-        (StoreHeap (i64) (seq
-                (GetGlobal (Name heap-name))
-                (increment-heap-pointer))
-            (compile-e e))))
+        (GetGlobal (Name heap-name))
+        (increment-heap-pointer)
+        (StoreHeap (i64) (compile-e e))))
 
 ;; Helper function for getting a value from the heap and pushing it's value to the stack.
 (define (load-from-heap e type offset)
