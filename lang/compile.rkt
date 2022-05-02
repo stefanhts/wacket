@@ -31,7 +31,7 @@
             (Sal (Sar (compile-e e) (Const char-shift)) (Const int-shift))]
         ['integer->char
             (Xor (Sal (Sar (compile-e e) (Const int-shift)) (Const char-shift)) (Const type-char))]
-        ['box (store-in-heap e type-box #t)]
+        ['box (store-box e)]
         ['unbox (load-from-heap e type-box (Const 0))]
         ['box? (compile-is-type ptr-mask type-box e)]
         ['car (load-from-heap e type-cons (Const 8))]
@@ -42,19 +42,24 @@
 (define (compile-prim2 p e1 e2)
     (match p
         ['cons (seq
-            (store-in-heap e2 type-cons #t)
-            (store-in-heap e1 0 #f)
+            ;;; (store-in-heap e2 type-cons #t)
+            ;;; (store-in-heap e1 0 #f)
         )]   
 ))
 
+;; Increments the heap pointer.
+(define (increment-heap-pointer)
+    (seq (SetGlobal (Name heap-name) (AddT (i32) (GetGlobal (Name heap-name)) (ConstT (i32) 8)))))
 
-;; Helper function for storing a value on the heap and pushing the masked pointer to it onto the stack.
-(define (store-in-heap e type return-address?)
+
+;; Stores a box on the heap.
+(define (store-box e)
     (seq
-        (StoreHeap (i64) (GetGlobal (Name heap-name)) (compile-e e))
-        (if return-address? (Xor (32->64 (GetGlobal (Name heap-name))) (Const type)) '())
-        (SetGlobal (Name heap-name) (AddT (i32) (GetGlobal (Name heap-name)) (ConstT (i32) 8))))
-)
+        (Xor (32->64 (GetGlobal (Name heap-name))) (Const type-box))
+        (StoreHeap (i64) (seq
+            (GetGlobal (Name heap-name))
+            (increment-heap-pointer))
+            (compile-e e))))
 
 ;; Helper function for getting a value from the heap and pushing it's value to the stack.
 (define (load-from-heap e type offset)
