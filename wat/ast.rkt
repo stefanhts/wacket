@@ -84,7 +84,8 @@
 (struct SetGlobal (n v) #:prefab)
 ;; type LoadHeap = (Type Index)
 (struct LoadHeap (t i) #:prefab)
-;; type Store-Heap = (Type Value)
+;; This type implicitly requires the address to be stored on the stack before.
+;; type StoreHeap = (Type Value)
 (struct StoreHeap (t v) #:prefab)
 
 ;; type Name = (Name (n))
