@@ -42,23 +42,32 @@
 (define (compile-prim2 p e1 e2)
     (match p
         ['cons (seq
-            ;;; (store-in-heap e2 type-cons #t)
-            ;;; (store-in-heap e1 0 #f)
+            (get-tagged-heap-address type-cons) ; The return value.
+            (GetGlobal (Name heap-name))        ; The first cell of the cons.
+            (increment-heap-pointer)
+            (GetGlobal (Name heap-name))        ; The second cell of the cons.
+            (increment-heap-pointer)
+            (StoreHeap (i64) (compile-e e1))
+            (StoreHeap (i64) (compile-e e2))
         )]   
 ))
 
-;; Increments the heap pointer.
+;; Increments the heap pointer to the next available position.
 (define (increment-heap-pointer)
     (seq (SetGlobal (Name heap-name) (AddT (i32) (GetGlobal (Name heap-name)) (ConstT (i32) 8)))))
 
+;; Returns the current address pointed to on the heap, tagged with the given type.
+(define (get-tagged-heap-address type)
+    (seq (Xor (32->64 (GetGlobal (Name heap-name))) (Const type)))
+)
 
 ;; Stores a box on the heap.
 (define (store-box e)
     (seq
-        (Xor (32->64 (GetGlobal (Name heap-name))) (Const type-box))
+        (get-tagged-heap-address type-box)
         (StoreHeap (i64) (seq
-            (GetGlobal (Name heap-name))
-            (increment-heap-pointer))
+                (GetGlobal (Name heap-name))
+                (increment-heap-pointer))
             (compile-e e))))
 
 ;; Helper function for getting a value from the heap and pushing it's value to the stack.

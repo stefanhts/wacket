@@ -84,8 +84,8 @@
 (struct SetGlobal (n v) #:prefab)
 ;; type LoadHeap = (Type Index)
 (struct LoadHeap (t i) #:prefab)
-;; type Store-Heap = (Type Index Value)
-(struct StoreHeap (t i v) #:prefab)
+;; type Store-Heap = (Type Value)
+(struct StoreHeap (t v) #:prefab)
 
 ;; type Name = (Name (n))
 (struct Name (n) #:prefab)

@@ -151,8 +151,7 @@
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs)
         )]
-        [(cons (StoreHeap t i v) is) (string-append (tabs ntabs) "(" (wattype->string t) ".store\n" 
-            (parse-instruction-list (seq i) (add1 ntabs)) ; The index we're storing at.
+        [(cons (StoreHeap t v) is) (string-append (tabs ntabs) "(" (wattype->string t) ".store\n" 
             (parse-instruction-list (seq v) (add1 ntabs)) ; The value to store.
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs)
