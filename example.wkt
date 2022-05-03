@@ -1,2 +1,2 @@
 #lang wacket
-(if #f (char->integer #\E) (integer->char 25991))
+(cdr (cdr (cdr (cons 1 (cons 10 (cons 100 1000))))))
