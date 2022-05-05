@@ -1,13 +1,16 @@
 #lang racket
 (require "ast.rkt" "../wat/ast.rkt" "types.rkt")
 (provide compile)
+(define stack-name (gensym 'stack))
+(define top-stack-address 16384)
 (define heap-name (gensym 'heap))
 (define (compile e)
         (Module (list (Export 'main (ExportFuncSignature 'main))
                       (MemoryExport)
                       (Global heap-name (i32) (Const 0))
+                      (Global stack-name (i32) (Const  top-stack-address))
                       (Func (FuncSignature 'main '() (Result (i64))) '() 
-                        (Body (seq (compile-e e)))))))
+                        (Body (seq (compile-e e '())))))))
 
 (define (compile-e e c)
     (match e
@@ -15,30 +18,37 @@
         [(Int n) (Const (imm->bits n))]
         [(Bool b) (Const (imm->bits b))]
         [(Char c) (Const (imm->bits c))]
-        [(Prim1 p e) (compile-prim1 p e)]
-        [(Prim2 p e1 e2) (compile-prim2 p e1 e2)]
-        [(If e1 e2 e3) (compile-if e1 e2 e3)]))
+        [(Var id) (compile-variable id c)]
+        [(Prim1 p e) (compile-prim1 p e c)]
+        [(Prim2 p e1 e2) (compile-prim2 p e1 e2 c)]
+        [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
+        [(Let id e1 e2) (compile-let id e1 e2 c)]))
+
+(define (compile-variable id c)
+    (let ((i (lookup id c)))
+        (seq 
+            (LoadHeap (i64) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) (+ i 8))))
+)))
 
 (define (compile-prim1 p e c)
     (match p
         ['add1 (Add (compile-e e c) (Const (imm->bits 1)))]
         ['sub1 (Sub (compile-e e c) (Const (imm->bits 1)))] 
         ['zero?
-
-            (WatIf (Eqz (compile-e e))
+            (WatIf (Eqz (compile-e e c))
                 (Const val-true)
                 (Const val-false))]
-        ['char? (compile-is-type mask-char type-char e)]
+        ['char? (compile-is-type mask-char type-char e c)]
         ['char->integer
             (Sal (Sar (compile-e e c) (Const char-shift)) (Const int-shift))]
         ['integer->char
-            (Xor (Sal (Sar (compile-e e) (Const int-shift)) (Const char-shift)) (Const type-char))]
-        ['box (store-box e)]
+            (Xor (Sal (Sar (compile-e e c) (Const int-shift)) (Const char-shift)) (Const type-char))]
+        ['box (store-box e c)]
         ['unbox (load-from-heap e type-box (Const 0))]
-        ['box? (compile-is-type ptr-mask type-box e)]
+        ['box? (compile-is-type ptr-mask type-box e c)]
         ['car (load-from-heap e type-cons (Const 8))]
         ['cdr (load-from-heap e type-cons (Const 0))]
-        ['cons? (compile-is-type ptr-mask type-cons e)]
+        ['cons? (compile-is-type ptr-mask type-cons e c)]
 ))
 (define (compile-prim2 p e1 e2 c)
    (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)))
@@ -63,12 +73,34 @@
             (increment-heap-pointer)
             (GetGlobal (Name heap-name))        ; The second cell of the cons.
             (increment-heap-pointer)
-            (StoreHeap (i64) (compile-e e1))
-            (StoreHeap (i64) (compile-e e2))
-        )]
-        )
-   ) 
-)
+            (StoreHeap (i64) (compile-e e1 c))
+            (StoreHeap (i64) (compile-e e2 c))
+        )]   
+))
+
+(define (compile-let id e1 e2 c)
+    (seq
+        (GetGlobal (Name stack-name))
+        (StoreHeap (i64) (compile-e e1 c))
+        (SetGlobal (Name stack-name) (AddT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) 8)))
+        (compile-e e2 (cons id c))
+    ))
+
+;; Pushes the given value to the stack.
+(define (push-to-stack e c) 
+    (seq
+        (GetGlobal (Name stack-name))
+        (StoreHeap (i64) (compile-e e c))
+        (SetGlobal (Name stack-name) (AddT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) 8))) ; Add pointer simulate pushing.
+))
+
+;; Pops the value at the top of the stack.
+(define (pop-stack)
+    (seq
+        ;; TODO: Jump to error if stack value is at `top-stack-address`.
+        (SetGlobal (Name stack-name) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) 8))) ; Decrement pointer simulate popping.
+        (LoadHeap (i64) (GetGlobal (Name stack-name))) ; Retrieve the value here.
+))
 
 ;; Increments the heap pointer to the next available position.
 (define (increment-heap-pointer)
@@ -80,30 +112,39 @@
 )
 
 ;; Stores a box on the heap.
-(define (store-box e)
+(define (store-box e c)
     (seq
         (get-tagged-heap-address type-box)
         (GetGlobal (Name heap-name))
         (increment-heap-pointer)
-        (StoreHeap (i64) (compile-e e))))
+        (StoreHeap (i64) (compile-e e c))))
 
 ;; Helper function for getting a value from the heap and pushing it's value to the stack.
-(define (load-from-heap e type offset)
+(define (load-from-heap e type offset c)
     (seq
-        (LoadHeap (i64) (64->32 (Add offset (Xor (Const type) (compile-e e)))))
+        (LoadHeap (i64) (64->32 (Add offset (Xor (Const type) (compile-e e c)))))
     ))
 
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3 c)
-    (WatIf (Ne (compile-e e1 c) (Const val-false c))
+    (WatIf (Ne (compile-e e1 c) (Const val-false))
         (compile-e e2 c)
         (compile-e e3 c)
     )
 )
 
-(define (compile-is-type mask type e)
-    (WatIf (Eqz (Xor (And (compile-e e) (Const mask)) (Const type)))
+(define (compile-is-type mask type e c)
+    (WatIf (Eqz (Xor (And (compile-e e c) (Const mask)) (Const type)))
         (Const val-true)
         (Const val-false)
     )
 )
+
+;; Id CEnv -> Integer
+(define (lookup x cenv)
+  (match cenv
+    ['() (error "undefined variable:" x)]
+    [(cons y rest)
+     (match (eq? x y)
+       [#t 0]
+       [#f (+ 8 (lookup x rest))])]))
