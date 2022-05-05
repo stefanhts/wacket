@@ -1,13 +1,14 @@
 #lang racket
-(provide Int Bool Char Var Prim1 Prim2 If)
+(provide (all-defined-out))
 
 ;; type Expr =
 ;; | (Int Integer)
 ;; | (Bool Boolean)
 ;; | (Char Character)
-;; | (Prim1 Op Expr)
+;; | (Prim1 Op1 Expr)
+;; | (Prim2 Op2 Expr Expr)
 ;; | (If Expr Expr Expr)
-;; type Op = 'add1 | 'sub1 | 'zero?
+;; type Op1 = 'add1 | 'sub1 | 'zero?
 ;;         | 'char? | 'integer->char | 'char->integer
 (struct Int (i)         #:prefab)
 (struct Bool (b)        #:prefab)
