@@ -14,7 +14,6 @@
 
 (define (compile-e e c)
     (match e
-        [(Var v) (compile-var v c)]
         [(Int n) (Const (imm->bits n))]
         [(Bool b) (Const (imm->bits b))]
         [(Char c) (Const (imm->bits c))]
@@ -60,7 +59,7 @@
             ['<= (Le e1 e2)]
             ['add (Add e1 e2)]
             ['sub (Sub e1 e2)]
-            ['mult (Mult e1 e2)]
+            ['mult (Mul e1 e2)]
             ['div (Div e1 e2)]
             ['or (Or e1 e2)]
             ['and (And e1 e2)]
@@ -76,7 +75,7 @@
             (StoreHeap (i64) (compile-e e1 c))
             (StoreHeap (i64) (compile-e e2 c))
         )]   
-))
+)))
 
 (define (compile-let id e1 e2 c)
     (seq
