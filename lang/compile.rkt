@@ -15,23 +15,7 @@
         [(Prim1 p e) (compile-prim1 p e c)]
         [(Prim2 p e1 e2) (compile-prim2 p e1 e2 c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
-        [(Let x e1 e2 c) (compile-let x e1 e2 c)]
         ))
-
-(define (compile-var v c)
-   ;; TODO: how do i put the variable on the stack... 
-)
-
-(define (lookup x cenv)
-    (match cenv
-        ['() (error "undefined variable:" x)]
-        [(cons y rest)
-            (match (eq? x y
-                [#t 0] 
-                [#f (+ 8 (lookup x rest))]
-            ))]
-    )
-    )
 
 (define (compile-prim1 p e c)
     (match p
@@ -67,14 +51,9 @@
             ['xor (Xor e1 e2)]
             ['>> (Sar e1 e2)]
             ['<< (Sal e1 e2)]
-            [_ (error "compile error: unexpec")]
+            [_ (error "compile error: unexpected operation")]
         )
    ) 
-)
-
-(define (compile-let x e1 e2 c)
-    (seq (SetLocal (Name x) (compile-e e1 c))
-         (compile-e e2 c))
 )
 
 ;; Expr Expr Expr -> Asm
