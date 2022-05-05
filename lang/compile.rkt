@@ -14,6 +14,7 @@
 
 (define (compile-e e c)
     (match e
+        [(Var v) (compile-var v c)]
         [(Int n) (Const (imm->bits n))]
         [(Bool b) (Const (imm->bits b))]
         [(Char c) (Const (imm->bits c))]
@@ -49,10 +50,24 @@
         ['cdr (load-from-heap e type-cons (Const 0))]
         ['cons? (compile-is-type ptr-mask type-cons e c)]
 ))
-
 (define (compile-prim2 p e1 e2 c)
-    (match p
-        ['cons (seq
+   (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)))
+        (match p
+            ['eq? (Eq e1 e2)]
+            ['< (Lt e1 e2)]
+            ['> (Gt e1 e2)]
+            ['>= (Ge e1 e2)]
+            ['<= (Le e1 e2)]
+            ['add (Add e1 e2)]
+            ['sub (Sub e1 e2)]
+            ['mult (Mult e1 e2)]
+            ['div (Div e1 e2)]
+            ['or (Or e1 e2)]
+            ['and (And e1 e2)]
+            ['xor (Xor e1 e2)]
+            ['>> (Sar e1 e2)]
+            ['<< (Sal e1 e2)]
+            ['cons (seq
             (get-tagged-heap-address type-cons) ; The return value.
             (GetGlobal (Name heap-name))        ; The first cell of the cons.
             (increment-heap-pointer)
