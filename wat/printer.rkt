@@ -28,7 +28,7 @@
             (parse-import m f fs ntabs)
             (parse-definitions ds ntabs))]
         [(cons (MemoryExport) ds) (string-append
-            (tabs ntabs) "(memory (export \"memory\") 1)\n"
+            (tabs ntabs) "(memory (export \"memory\") 2)\n"
             (parse-definitions ds ntabs)
         )]
         [(cons (Export n d) ds) (string-append
@@ -172,6 +172,9 @@
             (string-append (wattype->string t) ".add") 
             (seq i1 i2))]
         [(Add i1 i2) (list "i64.add"   (seq i1 i2))]
+        [(SubT t i1 i2)  (list 
+            (string-append (wattype->string t) ".sub") 
+            (seq i1 i2))]
         [(Sub i1 i2) (list "i64.sub"   (seq i1 i2))]
         [(Mul i1 i2) (list "i64.mul"   (seq i1 i2))]
         [(Div i1 i2) (list "i64.div_s" (seq i1 i2))]

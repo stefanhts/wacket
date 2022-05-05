@@ -54,7 +54,9 @@
 (struct AddT (t i1 i2) #:prefab)
 ;; Convenience for adding 64 bit integers.
 (struct Add (i1 i2) #:prefab)
-
+;; Sub which takes an arbitrary type.
+(struct SubT (t i1 i2) #:prefab)
+;; Convenience for adding 64 bit integers.
 (struct Sub (i1 i2) #:prefab)
 
 (struct Mul (i1 i2) #:prefab)

@@ -1,2 +1,2 @@
 #lang wacket
-(cdr (cdr (cdr (cons 1 (cons 10 (cons 100 1000))))))
+(let ((y 69)) (let ((x 42)) x))
