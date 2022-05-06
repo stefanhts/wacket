@@ -1,2 +1,3 @@
 #lang wacket
-(let ((y 69)) (let ((x 42)) x))
+(define (first x) (car x))
+(first (cons 1 2))
