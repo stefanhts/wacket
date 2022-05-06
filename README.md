@@ -74,14 +74,14 @@ To fix this problem, I navigated to `/usr/share/racket/collects/` and ran the co
 This tricks the syntax checker because it looks at `/usr/share/racket/collects/wacket`, but it's really just a symbolic link to `/usr/share/racket/collects/racket`.
 
 ## TODO
-
-- How to implement heap storage
-- ask jose about type wrapping for heap options
-- Lets
-- Functions
-- Prim2
+- Change env to be a list of tuples indicating whether a variable is a param or local
 - Case
 - Cond
+- Lambdas
+- Tail recursion
+- Prim0
+- Strings
+- Vectors
 
 ## Complete
 
@@ -91,6 +91,11 @@ This tricks the syntax checker because it looks at `/usr/share/racket/collects/w
 - Prim1
 - If
 - types
+- Cons
+- Box
+- Prim2
+- Functions
+- Lets
 
 ## wat AST
 
