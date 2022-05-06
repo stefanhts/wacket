@@ -5,12 +5,49 @@
 (define top-stack-address 16384)
 (define heap-name (gensym 'heap))
 (define (compile e)
-        (Module (list (Export 'main (ExportFuncSignature 'main))
+    (match e
+        [(Prog ds e)
+            (Module (list (Export 'main (ExportFuncSignature 'main))
                       (MemoryExport)
                       (Global heap-name (i32) (Const 0))
                       (Global stack-name (i32) (Const  top-stack-address))
                       (Func (FuncSignature 'main '() (Result (i64))) '() 
-                        (Body (seq (compile-e e '())))))))
+                         (Body (seq (compile-e e '()))))
+                      (FuncList (compile-defines ds))
+                      ))]))
+
+(define (compile-es es c)
+    (match es
+        ['() '()]
+        [(cons e es)
+            (seq (compile-e e c)
+                 (compile-es es (cons #f c)))]))
+
+(define (compile-defines ds)
+    (match ds
+        ['() (seq)]
+        [(cons d ds)
+          (seq (compile-define d)
+               (compile-defines ds))]
+        )
+)
+
+(define (compile-define d)
+    (match d
+        [(Defn f xs e)
+         (seq (Func
+                (FuncSignature f xs (Result (i64)))
+                '()
+                (Body (seq (compile-e e '())))
+                ))] 
+    )
+)
+
+(define (compile-app f es c)
+    (seq (compile-es es c)
+    (Call f)
+    )
+)
 
 (define (compile-e e c)
     (match e
@@ -21,13 +58,17 @@
         [(Prim1 p e) (compile-prim1 p e c)]
         [(Prim2 p e1 e2) (compile-prim2 p e1 e2 c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
-        [(Let id e1 e2) (compile-let id e1 e2 c)]))
+        [(Let id e1 e2) (compile-let id e1 e2 c)]
+        [(App f es) (seq (compile-app f es c))] 
+        ))
 
 (define (compile-variable id c)
-    (let ((i (lookup id c)))
-        (seq 
-            (LoadHeap (i64) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) (+ i 8))))
-)))
+    (match (lookup id c)
+        ['err (seq (GetLocal (Name id)))] 
+        [i (seq 
+            (LoadHeap (i64) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) (+ i 8)))))]
+    )
+)
 
 (define (compile-prim1 p e c)
     (match p
@@ -57,10 +98,10 @@
             ['> (Gt e1 e2)]
             ['>= (Ge e1 e2)]
             ['<= (Le e1 e2)]
-            ['add (Add e1 e2)]
-            ['sub (Sub e1 e2)]
-            ['mult (Mul e1 e2)]
-            ['div (Div e1 e2)]
+            ['+ (Add e1 e2)]
+            ['- (Sub e1 e2)]
+            ['+ (Mul e1 e2)]
+            ['/ (Div e1 e2)]
             ['or (Or e1 e2)]
             ['and (And e1 e2)]
             ['xor (Xor e1 e2)]
@@ -142,7 +183,7 @@
 ;; Id CEnv -> Integer
 (define (lookup x cenv)
   (match cenv
-    ['() (error "undefined variable:" x)]
+    ['() 'err]
     [(cons y rest)
      (match (eq? x y)
        [#t 0]
