@@ -84,10 +84,10 @@
         ['integer->char
             (Xor (Sal (Sar (compile-e e c) (Const int-shift)) (Const char-shift)) (Const type-char))]
         ['box (store-box e c)]
-        ['unbox (load-from-heap e type-box (Const 0))]
+        ['unbox (load-from-heap e type-box (Const 0) c)]
         ['box? (compile-is-type ptr-mask type-box e c)]
-        ['car (load-from-heap e type-cons (Const 8))]
-        ['cdr (load-from-heap e type-cons (Const 0))]
+        ['car (load-from-heap e type-cons (Const 8) c)]
+        ['cdr (load-from-heap e type-cons (Const 0) c)]
         ['cons? (compile-is-type ptr-mask type-cons e c)]
 ))
 (define (compile-prim2 p e1 e2 c)
@@ -113,8 +113,8 @@
             (increment-heap-pointer)
             (GetGlobal (Name heap-name))        ; The second cell of the cons.
             (increment-heap-pointer)
-            (StoreHeap (i64) (compile-e e1 c))
-            (StoreHeap (i64) (compile-e e2 c))
+            (StoreHeap (i64) e1)
+            (StoreHeap (i64) e2)
         )]   
 )))
 

@@ -1,4 +1,3 @@
 #lang wacket
-(define (test x) (add1 x))
-(define (sec y) (add1 (test y)))
-(sec 5)
+(define (first x) (car x))
+(first (cons 1 2))
