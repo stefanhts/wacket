@@ -1,6 +1,8 @@
 #lang racket
 (require "ast.rkt" "../wat/ast.rkt" "types.rkt")
 (provide compile)
+(define local 'local)
+(define param 'param)
 (define stack-name (gensym 'stack))
 (define top-stack-address 16384)
 (define heap-name (gensym 'heap))
@@ -35,8 +37,12 @@
          (seq (Func
                 (FuncSignature f xs (Result (i64)))
                 '()
-                (Body (seq (compile-e e '())))
+                (Body (seq (compile-e e (params xs))))
                 ))]))
+
+(define (params xs)
+    (map cons (make-list (length xs) param) (reverse xs))
+)
 
 (define (compile-app f es c)
     (seq (compile-es es c)
@@ -56,7 +62,7 @@
 
 (define (compile-variable id c)
     (match (lookup id c)
-        ['err (seq (GetLocal (Name id)))] 
+        [param (seq (GetLocal (Name id)))] 
         [i (seq 
             (LoadHeap (i64) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) (+ i 8)))))]))
 
@@ -111,7 +117,7 @@
         (GetGlobal (Name stack-name))
         (StoreHeap (i64) (compile-e e1 c))
         (SetGlobal (Name stack-name) (AddT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) 8)))
-        (compile-e e2 (cons id c))
+        (compile-e e2 (cons (cons 'local id) c))
     ))
 
 ;; Pushes the given value to the stack.
@@ -167,7 +173,13 @@
 (define (lookup x cenv)
   (match cenv
     ['() 'err]
-    [(cons y rest)
+    [(cons (cons type y) rest)
      (match (eq? x y)
-       [#t 0]
-       [#f (+ 8 (lookup x rest))])]))
+       [#t (match x
+            [local 0]
+            [param param])]
+       [#f (match x
+            [local (+ 8 (lookup x rest))]
+            [param (lookup x rest)]
+       )])])) 
+       

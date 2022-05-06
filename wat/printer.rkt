@@ -219,7 +219,7 @@
 (define (parse-params ps ntabs)
     (match ps
         ['() ""]
-        [(cons p ps) (string-append " (param $" (symbol->string p) " i64)")] 
+        [(cons p ps) (string-append " (param $" (symbol->string p) " i64) " (parse-params ps ntabs))] 
     )
 )
 
