@@ -13,24 +13,21 @@
                       (Global stack-name (i32) (Const  top-stack-address))
                       (Func (FuncSignature 'main '() (Result (i64))) '() 
                          (Body (seq (compile-e e '()))))
-                      (FuncList (compile-defines ds))
-                      ))]))
+                      (FuncList (compile-defines ds))))]))
 
 (define (compile-es es c)
     (match es
         ['() '()]
         [(cons e es)
             (seq (compile-e e c)
-                 (compile-es es (cons #f c)))]))
+                 (compile-es es c))]))
 
 (define (compile-defines ds)
     (match ds
         ['() (seq)]
         [(cons d ds)
           (seq (compile-define d)
-               (compile-defines ds))]
-        )
-)
+               (compile-defines ds))]))
 
 (define (compile-define d)
     (match d
@@ -39,15 +36,11 @@
                 (FuncSignature f xs (Result (i64)))
                 '()
                 (Body (seq (compile-e e '())))
-                ))] 
-    )
-)
+                ))]))
 
 (define (compile-app f es c)
     (seq (compile-es es c)
-    (Call f)
-    )
-)
+         (Call f)))
 
 (define (compile-e e c)
     (match e
@@ -59,16 +52,13 @@
         [(Prim2 p e1 e2) (compile-prim2 p e1 e2 c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
         [(Let id e1 e2) (compile-let id e1 e2 c)]
-        [(App f es) (seq (compile-app f es c))] 
-        ))
+        [(App f es) (seq (compile-app f es c))]))
 
 (define (compile-variable id c)
     (match (lookup id c)
         ['err (seq (GetLocal (Name id)))] 
         [i (seq 
-            (LoadHeap (i64) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) (+ i 8)))))]
-    )
-)
+            (LoadHeap (i64) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) (+ i 8)))))]))
 
 (define (compile-prim1 p e c)
     (match p
@@ -88,8 +78,8 @@
         ['box? (compile-is-type ptr-mask type-box e c)]
         ['car (load-from-heap e type-cons (Const 8) c)]
         ['cdr (load-from-heap e type-cons (Const 0) c)]
-        ['cons? (compile-is-type ptr-mask type-cons e c)]
-))
+        ['cons? (compile-is-type ptr-mask type-cons e c)]))
+        
 (define (compile-prim2 p e1 e2 c)
    (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)))
         (match p
@@ -114,9 +104,7 @@
             (GetGlobal (Name heap-name))        ; The second cell of the cons.
             (increment-heap-pointer)
             (StoreHeap (i64) e1)
-            (StoreHeap (i64) e2)
-        )]   
-)))
+            (StoreHeap (i64) e2))])))
 
 (define (compile-let id e1 e2 c)
     (seq
@@ -162,23 +150,18 @@
 ;; Helper function for getting a value from the heap and pushing it's value to the stack.
 (define (load-from-heap e type offset c)
     (seq
-        (LoadHeap (i64) (64->32 (Add offset (Xor (Const type) (compile-e e c)))))
-    ))
+        (LoadHeap (i64) (64->32 (Add offset (Xor (Const type) (compile-e e c)))))))
 
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3 c)
     (WatIf (Ne (compile-e e1 c) (Const val-false))
         (compile-e e2 c)
-        (compile-e e3 c)
-    )
-)
+        (compile-e e3 c)))
 
 (define (compile-is-type mask type e c)
     (WatIf (Eqz (Xor (And (compile-e e c) (Const mask)) (Const type)))
         (Const val-true)
-        (Const val-false)
-    )
-)
+        (Const val-false)))
 
 ;; Id CEnv -> Integer
 (define (lookup x cenv)
