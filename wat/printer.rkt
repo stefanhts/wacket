@@ -40,6 +40,9 @@
         [(cons (Func s ls b) ds) (string-append
             (parse-func s ls b ntabs)
             (parse-definitions ds ntabs))]
+        [(cons (FuncList fs) ds) (string-append
+            (parse-funclist fs ntabs)
+            (parse-definitions ds ntabs))]
         [(cons (Start f) ds) (string-append
             (parse-start f ntabs)
             (parse-definitions ds ntabs))]
@@ -97,8 +100,8 @@
 (define (parse-locals ls ntabs)
     (match ls
         ['() ""]
-        [(cons (Local n t) ls) (string-append
-            (tabs ntabs) "(local $" (symbol->string n) " " (wattype->string t) ")\n"
+        [(cons l ls) (string-append
+            (tabs ntabs) "(local $" (symbol->string l) " i64)\n"
             (parse-locals ls ntabs))]
         [(cons x _) (parse-error "Expected local in locals section, got" x)]
         [x (parse-error "Expected list of locals, got" x)]))
@@ -115,6 +118,8 @@
         [(cons (Name n) is) (string-append 
             (tabs ntabs) "$" (symbol->string n) "\n" 
             (parse-instruction-list is ntabs))]
+        [(cons (Call f) is) (string-append (tabs ntabs) "(call $" (symbol->string f) ")\n" 
+        (parse-instruction-list is ntabs))]
         [(cons (WatIf p t f) is) (string-append
             (tabs ntabs) "(if (result i64)\n"
             (parse-instruction-list (seq p t f) (add1 ntabs))
@@ -132,7 +137,7 @@
             (parse-instruction-list sub-is (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list next-is ntabs))]
-        [(cons (GetLocal (Name n)) is) (string-append (tabs ntabs) "(local.get $" n ")\n"
+        [(cons (GetLocal (Name n)) is) (string-append (tabs ntabs) "(local.get $" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs))]
         [(cons (SetLocal (Name n) i) is) (string-append (tabs ntabs) "(local.set $" n "\n"
             (parse-instruction-list (seq i) (add1 ntabs))
@@ -203,10 +208,18 @@
         )]
         [x (parse-error "Should be FuncSignature, but is:" x)]))
 
+(define (parse-funclist fs ntabs)
+    (match fs
+        ['() ""]
+        [(cons (Func f ls b) fs) (string-append 
+                (parse-func f ls b ntabs) (parse-funclist fs ntabs))]
+                )
+)
+
 (define (parse-params ps ntabs)
     (match ps
         ['() ""]
-        [(cons (Param p t) ps) (string-append " (param " (wattype->string t) ")")] 
+        [(cons p ps) (string-append " (param $" (symbol->string p) " i64)")] 
     )
 )
 

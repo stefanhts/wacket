@@ -1,2 +1,4 @@
 #lang wacket
-(let ((y 69)) (let ((x 42)) x))
+(define (test x) (add1 x))
+(define (sec y) (add1 (test y)))
+(sec 5)
