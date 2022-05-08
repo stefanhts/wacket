@@ -12,6 +12,7 @@
             (Module (list (Import 'io 'read (FuncSignature 'readByte '() (Result (i64))))
                           (Import 'io 'write (FuncSignature 'writeByte (list '_) (Result (i64))))
                           (Import 'io 'peek (FuncSignature 'peekByte '() (Result (i64))))
+                          (Import 'err 'error (FuncSignature 'error '() (Result (i64))))
                           (Export 'main (ExportFuncSignature 'main))
                           (MemoryExport)
                           (Global heap-name (i32) (Const 0))
@@ -195,7 +196,7 @@
 ;; Id CEnv -> Integer
 (define (lookup x cenv)
   (match cenv
-    ['() 'err]
+    ['() (error (string-append (symbol->string x) ": Symbol does not exist in this scope"))]
     [(cons (cons type y) rest)
      (match (eq? x y)
        [#t (match x
@@ -205,3 +206,7 @@
             [local (+ 8 (lookup x rest))]
             [param (lookup x rest)]
        )])])) 
+       
+(define (err)
+    (seq (Call 'error))
+)
