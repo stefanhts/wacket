@@ -10,6 +10,7 @@
     (match e
         [(Prog ds e)
             (Module (list (Export 'main (ExportFuncSignature 'main))
+                    ;; TODO: import error function
                       (MemoryExport)
                       (Global heap-name (i32) (Const 0))
                       (Global stack-name (i32) (Const  top-stack-address))
@@ -172,7 +173,7 @@
 ;; Id CEnv -> Integer
 (define (lookup x cenv)
   (match cenv
-    ['() 'err]
+    ['() (error (string-append (symbol->string x) ": Symbol does not exist in this scope")]
     [(cons (cons type y) rest)
      (match (eq? x y)
        [#t (match x
@@ -183,3 +184,6 @@
             [param (lookup x rest)]
        )])])) 
        
+(define (err)
+    (seq (Call 'error))
+)
