@@ -28,6 +28,10 @@ const val_void = ((3n << char_shift) | nonchar_type_tag)
 const val_empty = ((4n << char_shift) | nonchar_type_tag)
 
 
+function error() {
+  throw "Compile Error"
+}
+
 function run() {
   const input = document.getElementById("inputbox").value;
   const output = document.getElementById("res");
