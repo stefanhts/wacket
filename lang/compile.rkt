@@ -173,7 +173,7 @@
 ;; Id CEnv -> Integer
 (define (lookup x cenv)
   (match cenv
-    ['() (error (string-append (symbol->string x) ": Symbol does not exist in this scope")]
+    ['() (error (string-append (symbol->string x) ": Symbol does not exist in this scope"))]
     [(cons (cons type y) rest)
      (match (eq? x y)
        [#t (match x
