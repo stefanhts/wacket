@@ -96,7 +96,7 @@
             (WatIf (Eq (compile-e e c) (Const val-eof))
                 (Const val-true)
                 (Const val-false))]
-        ['write-byte (seq (compile-e e c) (Call 'writeByte))]))
+        ['write-byte (seq (compile-e e c) (Call 'writeByte))]
         ['box (store-box e c)]
         ['unbox (load-from-heap e type-box (Const 0) c)]
         ['box? (compile-is-type ptr-mask type-box e c)]
