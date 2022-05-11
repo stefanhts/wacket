@@ -9,13 +9,16 @@
 (define (compile e)
     (match e
         [(Prog ds e)
-            (Module (list (Export 'main (ExportFuncSignature 'main))
-                      (MemoryExport)
-                      (Global heap-name (i32) (Const 0))
-                      (Global stack-name (i32) (Const  top-stack-address))
-                      (Func (FuncSignature 'main '() (Result (i64))) '() 
-                         (Body (seq (compile-e e '()))))
-                      (FuncList (compile-defines ds))))]))
+            (Module (list (Import 'io 'read (FuncSignature 'readByte '() (Result (i64))))
+                          (Import 'io 'write (FuncSignature 'writeByte (list '_) (Result (i64))))
+                          (Import 'io 'peek (FuncSignature 'peekByte '() (Result (i64))))
+                          (Export 'main (ExportFuncSignature 'main))
+                          (MemoryExport)
+                          (Global heap-name (i32) (Const 0))
+                          (Global stack-name (i32) (Const  top-stack-address))
+                          (Func (FuncSignature 'main '() (Result (i64))) '() 
+                            (Body (seq (compile-e e '()))))
+                          (FuncList (compile-defines ds))))]))
 
 (define (compile-es es c)
     (match es
@@ -53,9 +56,13 @@
         [(Int n) (Const (imm->bits n))]
         [(Bool b) (Const (imm->bits b))]
         [(Char c) (Const (imm->bits c))]
-        [(Var id) (compile-variable id c)]
+        [(Eof) (Const (imm->bits eof))]
+        [(Prim0 p) (compile-prim0 p)]
         [(Prim1 p e) (compile-prim1 p e c)]
         [(Prim2 p e1 e2) (compile-prim2 p e1 e2 c)]
+        [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
+        [(Begin e1 e2) (compile-begin e1 e2 c)]
+        [(Var id) (compile-variable id c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
         [(Let id e1 e2) (compile-let id e1 e2 c)]
         [(App f es) (seq (compile-app f es c))]))
@@ -65,6 +72,12 @@
         [param (seq (GetLocal (Name id)))] 
         [i (seq 
             (LoadHeap (i64) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) (+ i 8)))))]))
+            
+(define (compile-prim0 p)
+    (match p
+        ['void (Const val-void)]
+        ['read-byte (Call 'readByte)]
+        ['peek-byte (Call 'peekByte)]))
 
 (define (compile-prim1 p e c)
     (match p
@@ -79,6 +92,11 @@
             (Sal (Sar (compile-e e c) (Const char-shift)) (Const int-shift))]
         ['integer->char
             (Xor (Sal (Sar (compile-e e c) (Const int-shift)) (Const char-shift)) (Const type-char))]
+        ['eof-object? 
+            (WatIf (Eq (compile-e e c) (Const val-eof))
+                (Const val-true)
+                (Const val-false))]
+        ['write-byte (seq (compile-e e c) (Call 'writeByte))]
         ['box (store-box e c)]
         ['unbox (load-from-heap e type-box (Const 0) c)]
         ['box? (compile-is-type ptr-mask type-box e c)]
@@ -145,6 +163,11 @@
     (seq (Xor (32->64 (GetGlobal (Name heap-name))) (Const type)))
 )
 
+(define (compile-begin e1 e2 c)
+    (seq (compile-e e1 c)
+         (Drop)
+         (compile-e e2 c)))
+
 ;; Stores a box on the heap.
 (define (store-box e c)
     (seq
@@ -182,4 +205,3 @@
             [local (+ 8 (lookup x rest))]
             [param (lookup x rest)]
        )])])) 
-       

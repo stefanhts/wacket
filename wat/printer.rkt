@@ -54,7 +54,7 @@
         ['() (parse-error-noarg "Empty import")]
         [(list '() '() '()) (parse-error-noarg "Import missing names")]
         [(list m f fs) (string-append
-            (tabs ntabs) "(import \"" (symbol->string m) "\" \"" (symbol->string f) "\" " (parse-funcsig fs ntabs) ")\n" 
+            (tabs ntabs) "(import \"" (symbol->string m) "\" \"" (symbol->string f) "\" (func " (parse-funcsig fs ntabs) "))\n" 
         )]
 
     )
@@ -159,6 +159,9 @@
         [(cons (StoreHeap t v) is) (string-append (tabs ntabs) "(" (wattype->string t) ".store\n" 
             (parse-instruction-list (seq v) (add1 ntabs)) ; The value to store.
             (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
+        [(cons (Drop) is) (string-append (tabs ntabs) "(drop)\n"
             (parse-instruction-list is ntabs)
         )]
         [(cons x _) (parse-error "Instruction not recognized:" x)]
