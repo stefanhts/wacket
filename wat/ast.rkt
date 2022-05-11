@@ -103,6 +103,9 @@
 (struct Start (f) #:prefab)
 ;; type Call = (Call (funcName))
 (struct Call (f) #:prefab)
+;; type Drop = (Drop)
+;; this is for popping things off stack and discarding them
+(struct Drop () #:prefab)
 
 ;; (U Instruction Asm) ... -> Asm
 ;; Convenient for sequencing instructions or groups of instructions
