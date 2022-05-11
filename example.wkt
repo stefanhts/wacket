@@ -1,2 +1,2 @@
 #lang wacket
-(if #f (char->integer #\E) (integer->char 25991))
+(begin (begin (begin (write-byte (peek-byte)) (write-byte (read-byte))) (write-byte 10)) #\!)

@@ -27,11 +27,21 @@
         [(cons (Import m f fs) ds) (string-append 
             (parse-import m f fs ntabs)
             (parse-definitions ds ntabs))]
+        [(cons (MemoryExport) ds) (string-append
+            (tabs ntabs) "(memory (export \"memory\") 2)\n"
+            (parse-definitions ds ntabs)
+        )]
         [(cons (Export n d) ds) (string-append
             (parse-export n d ntabs)
             (parse-definitions ds ntabs))]
+        [(cons (Global n t i) ds) (string-append
+            (parse-global n t i ntabs)
+            (parse-definitions ds ntabs))]
         [(cons (Func s ls b) ds) (string-append
             (parse-func s ls b ntabs)
+            (parse-definitions ds ntabs))]
+        [(cons (FuncList fs) ds) (string-append
+            (parse-funclist fs ntabs)
             (parse-definitions ds ntabs))]
         [(cons (Start f) ds) (string-append
             (parse-start f ntabs)
@@ -44,7 +54,7 @@
         ['() (parse-error-noarg "Empty import")]
         [(list '() '() '()) (parse-error-noarg "Import missing names")]
         [(list m f fs) (string-append
-            (tabs ntabs) "(import \"" (symbol->string m) "\" \"" (symbol->string f) "\" " (parse-import-funcsig fs ntabs) ")\n" 
+            (tabs ntabs) "(import \"" (symbol->string m) "\" \"" (symbol->string f) "\" (func " (parse-funcsig fs ntabs) "))\n" 
         )]
 
     )
@@ -52,19 +62,9 @@
 (define (parse-import-funcsig s ntabs)
     (match s
         [(FuncSignature n ps (Result t)) (string-append
-           "(func $" (symbol->string n) (parse-import-params ps) " (result " (wattype->string t) "))" 
+           "(func $" (symbol->string n) (parse-params ps ntabs) " (result " (wattype->string t) "))" 
         )]
         [x (parse-error "Should be FuncSignature (input), was:" x)]))
-
-(define (parse-import-params ps)
-    (match ps 
-        ['() ""]
-        [ps (string-append " (param " (parse-import-params-helper ps) ")")]))
-
-(define (parse-import-params-helper ps)
-    (match ps 
-        [(cons (Param _ t) '()) (wattype->string t)]
-        [(cons (Param _ t) ps) (string-append (wattype->string t) " " (parse-import-params-helper ps))]))
 
 (define (parse-export n fs ntabs) 
     (match (cons n fs)
@@ -82,6 +82,15 @@
         )]
         [x (parse-error "Expected ExportFuncSignature, got:" x)]))
 
+(define (parse-global n t i ntabs)
+    (match i
+        [(Const i) (string-append 
+        (tabs ntabs)
+        "(global $" (symbol->string n) " (mut " (wattype->string t) ") (" (wattype->string t) ".const " 
+        (number->string i) "))\n")]
+        [x (parse-error "Expected const, got " x)]
+))
+
 (define (parse-func s ls b ntabs) 
     (string-append
         (tabs ntabs) "(func " (parse-funcsig s ntabs) "\n"
@@ -91,8 +100,8 @@
 (define (parse-locals ls ntabs)
     (match ls
         ['() ""]
-        [(cons (Local n t) ls) (string-append
-            (tabs ntabs) "(local $" (symbol->string n) " " (wattype->string t) ")\n"
+        [(cons l ls) (string-append
+            (tabs ntabs) "(local $" (symbol->string l) " i64)\n"
             (parse-locals ls ntabs))]
         [(cons x _) (parse-error "Expected local in locals section, got" x)]
         [x (parse-error "Expected list of locals, got" x)]))
@@ -109,11 +118,17 @@
         [(cons (Name n) is) (string-append 
             (tabs ntabs) "$" (symbol->string n) "\n" 
             (parse-instruction-list is ntabs))]
+        [(cons (Call f) is) (string-append (tabs ntabs) "(call $" (symbol->string f) ")\n" 
+        (parse-instruction-list is ntabs))]
         [(cons (WatIf p t f) is) (string-append
             (tabs ntabs) "(if (result i64)\n"
-            (parse-instruction-list (list p t f) (add1 ntabs))
+            (parse-instruction-list (seq p t f) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
+        [(cons (ConstT t n) is) (string-append
+            (tabs ntabs) "(" (wattype->string t) ".const " (number->string n) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
         [(cons (Const n) is) (string-append
             (tabs ntabs) "(i64.const " (number->string n) ")\n"
             (parse-instruction-list is ntabs))]
@@ -122,11 +137,31 @@
             (parse-instruction-list sub-is (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list next-is ntabs))]
-        [(cons (GetLocal (Name n)) is) (string-append (tabs ntabs) "(local.get $" n ")\n"
+        [(cons (GetLocal (Name n)) is) (string-append (tabs ntabs) "(local.get $" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs))]
         [(cons (SetLocal (Name n) i) is) (string-append (tabs ntabs) "(local.set $" n "\n"
-            (parse-instruction-list (list i) (add1 ntabs))
+            (parse-instruction-list (seq i) (add1 ntabs))
             (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs))]
+        [(cons (GetGlobal (Name n)) is) (string-append (tabs ntabs) "(global.get $" (symbol->string n) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
+        [(cons (SetGlobal (Name n) i) is) (string-append (tabs ntabs) "(global.set $" (symbol->string n) "\n"
+            (parse-instruction-list (seq i) (add1 ntabs))
+            (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
+        [(cons (LoadHeap t i) is) (string-append (tabs ntabs) "(" (wattype->string t) ".load\n" 
+            (parse-instruction-list (seq i) (add1 ntabs))
+            (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
+        [(cons (StoreHeap t v) is) (string-append (tabs ntabs) "(" (wattype->string t) ".store\n" 
+            (parse-instruction-list (seq v) (add1 ntabs)) ; The value to store.
+            (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
+        [(cons (Drop) is) (string-append (tabs ntabs) "(drop)\n"
             (parse-instruction-list is ntabs))]
         [(cons x _) (parse-error "Instruction not recognized:" x)]
         [x (parse-error "Expected instruction list, got:" x)]))
@@ -134,23 +169,30 @@
 ;; Instruction struct -> (list string (list of Instructions))
 (define (instr-lit i)
     (match i
-        [(Eq  i1 i2) (list "i64.eq"    (list i1 i2))]
-        [(Ne  i1 i2) (list "i64.ne"    (list i1 i2))]
-        [(Lt  i1 i2) (list "i64.lt_s"  (list i1 i2))]
-        [(Gt  i1 i2) (list "i64.gt_s"  (list i1 i2))]
-        [(Le  i1 i2) (list "i64.le_s"  (list i1 i2))]
-        [(Ge  i1 i2) (list "i64.ge_s"  (list i1 i2))]
-        [(Add i1 i2) (list "i64.add"   (list i1 i2))]
-        [(Sub i1 i2) (list "i64.sub"   (list i1 i2))]
-        [(Mul i1 i2) (list "i64.mul"   (list i1 i2))]
-        [(Div i1 i2) (list "i64.div_s" (list i1 i2))]
-        [(And i1 i2) (list "i64.and"   (list i1 i2))]
-        [(Or  i1 i2) (list "i64.or"    (list i1 i2))]
-        [(Xor i1 i2) (list "i64.xor"   (list i1 i2))]
-        [(Sar i1 i2) (list "i64.shr_s" (list i1 i2))]
-        [(Sal i1 i2) (list "i64.shl"   (list i1 i2))]
-        [(Eqz    i1) (list "i64.eqz"          (list i1))]
-        [(32->64 i1) (list "i64.extend_i32_s" (list i1))]
+        [(Eq  i1 i2) (list "i64.eq"    (seq i1 i2))]
+        [(Ne  i1 i2) (list "i64.ne"    (seq i1 i2))]
+        [(Lt  i1 i2) (list "i64.lt_s"  (seq i1 i2))]
+        [(Gt  i1 i2) (list "i64.gt_s"  (seq i1 i2))]
+        [(Le  i1 i2) (list "i64.le_s"  (seq i1 i2))]
+        [(Ge  i1 i2) (list "i64.ge_s"  (seq i1 i2))]
+        [(AddT t i1 i2) (list 
+            (string-append (wattype->string t) ".add") 
+            (seq i1 i2))]
+        [(Add i1 i2) (list "i64.add"   (seq i1 i2))]
+        [(SubT t i1 i2)  (list 
+            (string-append (wattype->string t) ".sub") 
+            (seq i1 i2))]
+        [(Sub i1 i2) (list "i64.sub"   (seq i1 i2))]
+        [(Mul i1 i2) (list "i64.mul"   (seq i1 i2))]
+        [(Div i1 i2) (list "i64.div_s" (seq i1 i2))]
+        [(And i1 i2) (list "i64.and"   (seq i1 i2))]
+        [(Or  i1 i2) (list "i64.or"    (seq i1 i2))]
+        [(Xor i1 i2) (list "i64.xor"   (seq i1 i2))]
+        [(Sar i1 i2) (list "i64.shr_s" (seq i1 i2))]
+        [(Sal i1 i2) (list "i64.shl"   (seq i1 i2))]
+        [(Eqz    i1) (list "i64.eqz"          (seq i1))]
+        [(32->64 i1) (list "i64.extend_i32_s" (seq i1))]
+        [(64->32 i1) (list "i32.wrap_i64"     (seq i1))]
         [_ #f]))
 
 (define (wattype->string t)
@@ -168,10 +210,18 @@
         )]
         [x (parse-error "Should be FuncSignature, but is:" x)]))
 
+(define (parse-funclist fs ntabs)
+    (match fs
+        ['() ""]
+        [(cons (Func f ls b) fs) (string-append 
+                (parse-func f ls b ntabs) (parse-funclist fs ntabs))]
+                )
+)
+
 (define (parse-params ps ntabs)
     (match ps
         ['() ""]
-        [(cons (Param p t) ps) (string-append " (param " (wattype->string t) ")")] 
+        [(cons p ps) (string-append " (param $" (symbol->string p) " i64) " (parse-params ps ntabs))] 
     )
 )
 

@@ -31,28 +31,32 @@ let ENCODER = new TextEncoder()
 let DECODER = new TextDecoder()
 let STDIN = []
 let STDOUT = []
+const output = document.getElementById("res")
 let result = ""
 const importObject = { io: {read: readByte, write: writeByte, peek: peekByte}};
 
 function run(){
-    const input = document.getElementById("inputbox").value;
-    const output = document.getElementById("res");
+    output.innerHTML = " "
+    input = document.getElementById("inputbox").value;
     (async () => {
         console.log("running 'run'");
         const response = await fetch('main.wasm');
         const buffer = await response.arrayBuffer();
         const module = new WebAssembly.Module(buffer);
         const instance = new WebAssembly.Instance(module, importObject);
-        console.log(input);
-        console.log(typeof input);
-        STDIN = ENCODER.encode(BigInt(input));
-        console.log(STDIN);
+        console.log("input: ", input);
+        console.log("input type: ", typeof input);
+        STDIN = Array.from(ENCODER.encode(input));
+        console.log("STDIN: ", STDIN);
+        console.log("STDOUT: ", STDOUT);
         const rawResult = instance.exports.main();
+        flushSTDOUT();
         console.log("raw: ", rawResult);
-        STDOUT += ENCODER.encode(rawResult) 
-        result = unwrap(DECODER.decode(STDOUT));
+        const unwrappedResult = unwrap(rawResult);
+        console.log("unwrapped: ", unwrappedResult);
+        result = unwrappedResult;
         console.log("result: ", result);
-        output.innerHTML = result;
+        output.innerHTML = output.innerHTML + result;
       })();
 }
 
@@ -116,7 +120,7 @@ function unwrap(raw){
     case typesEnum.T_EOF:
       return "#<eof>"
     case typesEnum.T_VOID:
-      return ""
+      return " "
     case typesEnum.T_EMPTY:
     case typesEnum.T_CONS:
     case typesEnum.T_BOX:
@@ -209,20 +213,32 @@ function val_wrap_void(){
 }
 
 function readByte(){
+    console.log("reading byte!");
     if(STDIN.length < 1) {
       return val_eof
     }
-    return STDIN.shift()
+    return val_wrap_int(BigInt(STDIN.shift()))
 }
 
 function writeByte(byte){
-    STDOUT.push(byte)
-    return byte    
+    console.log("writing byte!");
+    const unwrappedByte = val_unwrap_int(byte);
+    STDOUT.push(Number(unwrappedByte))
+    return val_wrap_void();
 }
 
 function peekByte(){
+    console.log("peeking byte!");
     if(STDIN.length < 1) {
       return val_eof
     }
-    return STDIN[0]
+    return val_wrap_int(BigInt(STDIN[0]))
+}
+
+function flushSTDOUT() {
+    console.log("STDOUT before Uint8 conversion: ", STDOUT);
+    STDOUT = Uint8Array.from(STDOUT);
+    console.log("STDOUT: ", STDOUT);
+    output.innerHTML = output.innerHTML + DECODER.decode(STDOUT);
+    STDOUT = []
 }
