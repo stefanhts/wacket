@@ -7,7 +7,7 @@
 
 */
 const imm_shift = 3n
-const ptr_type_mask = ((1n << imm_shift) -1n)
+const ptr_type_mask = ((1n << imm_shift) - 1n)
 const box_type_tag = 1n
 const cons_type_tag = 2n
 const vect_type_tag = 3n
@@ -16,14 +16,14 @@ const proc_type_tag = 5n
 const int_shift = (1n + imm_shift)
 const int_type_mask = ((1n << int_shift) - 1n)
 const int_type_tag = (0n << (int_shift - 1n))
-const nonint_type_tag = (1n << (int_shift -1n))
+const nonint_type_tag = (1n << (int_shift - 1n))
 const char_shift = (int_shift + 1n)
 const char_type_mask = ((1n << char_shift) - 1n)
-const char_type_tag = ((0n << (char_shift -1n )) | nonint_type_tag)
-const nonchar_type_tag = ((1n << (char_shift -1n)) | nonint_type_tag)
+const char_type_tag = ((0n << (char_shift - 1n)) | nonint_type_tag)
+const nonchar_type_tag = ((1n << (char_shift - 1n)) | nonint_type_tag)
 const val_true = ((0n << char_shift) | nonchar_type_tag)
 const val_false = ((1n << char_shift) | nonchar_type_tag)
-const val_eof = ((2n << char_shift) | nonchar_type_tag) 
+const val_eof = ((2n << char_shift) | nonchar_type_tag)
 const val_void = ((3n << char_shift) | nonchar_type_tag)
 const val_empty = ((4n << char_shift) | nonchar_type_tag)
 
@@ -49,7 +49,11 @@ function run(){
         STDIN = Array.from(ENCODER.encode(input));
         console.log("STDIN: ", STDIN);
         console.log("STDOUT: ", STDOUT);
-        const rawResult = instance.exports.main();
+        const rawResult = instance.exports.main(42);
+        const memory = instance.exports.memory;
+        var i32 = new Uint32Array(memory.buffer)
+        console.log(i32)
+        console.log(memory.buffer)
         flushSTDOUT();
         console.log("raw: ", rawResult);
         const unwrappedResult = unwrap(rawResult);
@@ -75,7 +79,7 @@ const typesEnum = Object.freeze({
   T_PROC: 10
 })
 
-function val_typeof(x){
+function val_typeof(x) {
   switch (x & ptr_type_mask) {
     case box_type_tag:
       return typesEnum.T_BOX
@@ -108,9 +112,9 @@ function val_typeof(x){
   return typesEnum.T_INVALID
 }
 
-function unwrap(raw){
+function unwrap(raw) {
   console.log("val_typeof: ", val_typeof(raw))
-  switch (val_typeof(raw)){
+  switch (val_typeof(raw)) {
     case typesEnum.T_INT:
       return val_unwrap_int(raw)
     case typesEnum.T_BOOL:
@@ -135,27 +139,27 @@ function unwrap(raw){
   }
 }
 
-function result_interior(raw){
+function result_interior(raw) {
   // TODO:
 }
 
-function val_unwrap_str(raw){
+function val_unwrap_str(raw) {
   // TODO:
 }
 
-function str_char_u(c){
+function str_char_u(c) {
   // TODO:
 }
 
-function str_char_U(c){
+function str_char_U(c) {
   // TODO:
 }
 
-function str_char(c){
+function str_char(c) {
   // TODO: big ol ctrl-c ctrl-v from loot/print.c
 }
 
-function val_unwrap_char(raw){
+function val_unwrap_char(raw) {
   console.log("unwrapping char!")
   let shifted = raw >> char_shift
   let charStarter = "'";
@@ -184,31 +188,31 @@ function val_unwrap_char(raw){
   }
 }
 
-function val_unwrap_int(raw){
+function val_unwrap_int(raw) {
   return raw >> int_shift
 }
 
-function val_unwrap_bool(raw){
+function val_unwrap_bool(raw) {
   return raw === val_true
 }
 
-function val_wrap_int(i){
+function val_wrap_int(i) {
   return (i << int_shift) | int_type_tag
 }
 
-function val_wrap_bool(b){
+function val_wrap_bool(b) {
   return b ? val_true : val_false
 }
 
-function val_wrap_char(v){
+function val_wrap_char(v) {
   // TODO: 
 }
 
-function val_wrap_eof(){
+function val_wrap_eof() {
   return val_eof
 }
 
-function val_wrap_void(){
+function val_wrap_void() {
   return val_void
 }
 
