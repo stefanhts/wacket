@@ -162,7 +162,8 @@
             (parse-instruction-list is ntabs)
         )]
         [(cons (Drop) is) (string-append (tabs ntabs) "(drop)\n"
-            (parse-instruction-list is ntabs))]
+            (parse-instruction-list is ntabs)
+        )]
         [(cons x _) (parse-error "Instruction not recognized:" x)]
         [x (parse-error "Expected instruction list, got:" x)]))
 

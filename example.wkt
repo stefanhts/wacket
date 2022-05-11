@@ -1,2 +1,3 @@
 #lang wacket
-(begin (begin (begin (write-byte (peek-byte)) (write-byte (read-byte))) (write-byte 10)) #\!)
+(define (first x y) (+ x y))
+(first 1 2)
