@@ -7,6 +7,7 @@
 (define top-stack-address 16384)
 (define heap-name (gensym 'heap))
 (define internal-pointer (gensym 'i))
+(define secondary-pointer (gensym 'j))
 (define (compile e)
     (match e
         [(Prog ds e)
@@ -18,7 +19,7 @@
                           (MemoryExport)
                           (Global heap-name (i32) (Const 0))
                           (Global stack-name (i32) (Const top-stack-address))
-                          (Func (FuncSignature 'main '() (Result (i64))) (list 'assert_scratch internal-pointer) 
+                          (Func (FuncSignature 'main '() (Result (i64))) (list 'assert_scratch internal-pointer secondary-pointer) 
                             (Body (seq (compile-e e '()))))
                           (FuncList (compile-defines ds))))]))
 
@@ -64,6 +65,7 @@
         [(Prim0 p) (compile-prim0 p)]
         [(Prim1 p e) (compile-prim1 p e c)]
         [(Prim2 p e1 e2) (compile-prim2 p e1 e2 c)]
+        [(Prim3 p e1 e2 e3) (compile-prim3 p e1 e2 e3 c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
         [(Begin e1 e2) (compile-begin e1 e2 c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
@@ -130,10 +132,28 @@
             ['>> (Sar e1 e2)]
             ['<< (Sal e1 e2)]
             ['cons (compile-cons e1 e2)]
-            ['make-vector (compile-make-vector e1 e2)]
+            ['make-vector (compile-make-heap-vector e1 e2 type-vect)]
             ['vector-ref (compile-ref e1 e2 type-vect)]
-            ['make-string 'err]
+            ['make-string (compile-make-heap-vector e1 e2 type-str)]
             ['string-ref (compile-ref e1 e2 type-str)])))
+
+(define (compile-prim3 p e1 e2 e3 c)
+    (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)) (e3 (compile-e e3 c)))
+        (match p
+            ['vector-set! (seq
+                ;; TODO: Assert vector/integer
+                (SetLocal (Name secondary-pointer) e1)
+                (SetLocal (Name 'assert_scratch) (load-from-heap (GetLocal (Name secondary-pointer)) type-vect (Const 0)))
+                (WatIf (64->32 (And 
+                    (32->64 (Ge (Sar e2 (Const int-shift)) (Const 0))) 
+                    (32->64 (Lt (Sar e2 (Const int-shift)) (GetLocal (Name 'assert_scratch))))))
+
+                    (seq
+                        (64->32 (Add (Xor (GetLocal (Name secondary-pointer)) (Const type-vect)) (Mul (Const 8) (Add (Const 1) (Sar e2 (Const int-shift))))))
+                        (StoreHeap (i64) e3)
+                        (Const val-void)
+                    )
+                    (err)))])))
 
 (define (compile-cons e1 e2)
     (seq
@@ -145,9 +165,9 @@
         (StoreHeap (i64) e1)
         (StoreHeap (i64) e2)))
 
-(define (compile-make-vector e1 e2)
-    (WatIf (Eqz e1) (Const type-vect) (let ((loop-name (gensym 'vector))) (seq
-        (get-tagged-heap-address type-vect)
+(define (compile-make-heap-vector e1 e2 type)
+    (WatIf (Eqz e1) (Const type) (let ((loop-name (gensym 'loop))) (seq
+        (get-tagged-heap-address type)
         (GetGlobal (Name heap-name))
         (increment-heap-pointer)
         (StoreHeap (i64) (Sar e1 (Const int-shift))) ; Write the length of the vector.
@@ -165,8 +185,8 @@
     (seq
         (SetLocal (Name 'assert_scratch) (load-from-heap e1 type (Const 0)))
         (WatIf (64->32 (And 
-            (32->64 (Ge (GetLocal (Name 'assert_scratch)) (Const 0))) 
-            (32->64 (Lt (GetLocal (Name 'assert_scratch)) e2))))
+                    (32->64 (Ge (Sar e2 (Const int-shift)) (Const 0))) 
+                    (32->64 (Lt (Sar e2 (Const int-shift)) (GetLocal (Name 'assert_scratch))))))
 
             (load-from-heap e1 type (Mul (Const 8) (Add (Const 1) (Sar e2 (Const int-shift)))))
             (err)

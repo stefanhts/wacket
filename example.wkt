@@ -1,2 +1,2 @@
 #lang wacket
-(string-ref "abcd" 3)
+(vector-set! (make-vector 4 42) 2 69)
