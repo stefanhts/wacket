@@ -112,6 +112,15 @@
 ;; type Load = (Load)
 ;; Used when the value is known to be stored on the stack.
 (struct Load () #:prefab)
+;; type Table = (Table (length))
+(struct Table (n) #:prefab)
+;; type Type = (TypeDec ())
+(struct TypeDec () #:prefab)
+;; type Type = (Type ())
+(struct Type () #:prefab)
+;; type Elem = (Elem (listof functions))
+(struct Elem (fs))
+
 
 ;; (U Instruction Asm) ... -> Asm
 ;; Convenient for sequencing instructions or groups of instructions
