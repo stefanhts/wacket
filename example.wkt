@@ -1,2 +1,2 @@
 #lang wacket
-(string? "abc")
+(string-length "abc")

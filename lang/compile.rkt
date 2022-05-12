@@ -106,7 +106,10 @@
         ['car (load-from-heap e type-cons (Const 8) c)]
         ['cdr (load-from-heap e type-cons (Const 0) c)]
         ['cons? (compile-is-type ptr-mask type-cons e c)]
-        ['string? (compile-is-type ptr-mask type-str e c)]))
+        ['vector? 'err]
+        ['vector-length 'err]
+        ['string? (compile-is-type ptr-mask type-str e c)]
+        ['string-length (Sal (load-from-heap e type-str (Const 0) c) (Const int-shift))]))
         
 (define (compile-prim2 p e1 e2 c)
    (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)))
