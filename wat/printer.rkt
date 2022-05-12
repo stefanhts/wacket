@@ -54,7 +54,7 @@
         ['() (parse-error-noarg "Empty import")]
         [(list '() '() '()) (parse-error-noarg "Import missing names")]
         [(list m f fs) (string-append
-            (tabs ntabs) "(import \"" (symbol->string m) "\" \"" (symbol->string f) "\" " (parse-funcsig fs ntabs) ")\n" 
+            (tabs ntabs) "(import \"" (symbol->string m) "\" \"" (symbol->string f) "\" (func " (parse-funcsig fs ntabs) "))\n" 
         )]
 
     )
@@ -139,7 +139,7 @@
             (parse-instruction-list next-is ntabs))]
         [(cons (GetLocal (Name n)) is) (string-append (tabs ntabs) "(local.get $" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs))]
-        [(cons (SetLocal (Name n) i) is) (string-append (tabs ntabs) "(local.set $" n "\n"
+        [(cons (SetLocal (Name n) i) is) (string-append (tabs ntabs) "(local.set $" (symbol->string n) "\n"
             (parse-instruction-list (seq i) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
@@ -159,6 +159,9 @@
         [(cons (StoreHeap t v) is) (string-append (tabs ntabs) "(" (wattype->string t) ".store\n" 
             (parse-instruction-list (seq v) (add1 ntabs)) ; The value to store.
             (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
+        [(cons (Drop) is) (string-append (tabs ntabs) "(drop)\n"
             (parse-instruction-list is ntabs)
         )]
         [(cons x _) (parse-error "Instruction not recognized:" x)]

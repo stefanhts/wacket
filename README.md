@@ -50,6 +50,8 @@ Our runtime system is written in JavaScript, which can interface with compiled W
 There is a minimal HTML file to act as an interface to the runtime system.
 This must be exposed to localhost with a web server, because modern browsers don't allow for accessing arbitrary files in the filesystem.
 
+- [webassembly js api](https://webassembly.org/getting-started/js-api/)
+
 ## Source Language: wacket
 
 We'll be aiming to implement all the features present in Loot, the reduced version of Racket created in class already.
@@ -82,6 +84,7 @@ This tricks the syntax checker because it looks at `/usr/share/racket/collects/w
 - Prim0
 - Strings
 - Vectors
+- assert-types for box/cons
 
 ## Complete
 

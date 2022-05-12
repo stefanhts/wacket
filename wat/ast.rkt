@@ -16,12 +16,11 @@
 (struct Func (s ls b) #:prefab)
 ;; type FuncList = (FuncList (Listof Func))
 (struct FuncList (fs) #:prefab)
-;; type FuncSignature = (FuncSignature (name? (Listof Params) Result))
+;; type FuncSignature = (FuncSignature (name? (Listof Params) Result?))
+;; replace r with empty list for no return value
 (struct FuncSignature (n ps r) #:prefab)
 ;; type ExportFuncSignature = (ExportFuncSignature (name))
 (struct ExportFuncSignature (n) #:prefab)
-;; type Param = (Param (name? Type))
-(struct Param (n t) #:prefab)
 ;; type Result = (Result (Type))
 (struct Result (t) #:prefab)
 ;; type Local = (Local (name? Type))
@@ -103,6 +102,9 @@
 (struct Start (f) #:prefab)
 ;; type Call = (Call (funcName))
 (struct Call (f) #:prefab)
+;; type Drop = (Drop)
+;; this is for popping things off stack and discarding them
+(struct Drop () #:prefab)
 
 ;; (U Instruction Asm) ... -> Asm
 ;; Convenient for sequencing instructions or groups of instructions

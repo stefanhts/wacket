@@ -9,13 +9,17 @@
 (define (compile e)
     (match e
         [(Prog ds e)
-            (Module (list (Export 'main (ExportFuncSignature 'main))
-                      (MemoryExport)
-                      (Global heap-name (i32) (Const 0))
-                      (Global stack-name (i32) (Const  top-stack-address))
-                      (Func (FuncSignature 'main '() (Result (i64))) '() 
-                         (Body (seq (compile-e e '()))))
-                      (FuncList (compile-defines ds))))]))
+            (Module (list (Import 'io 'read (FuncSignature 'readByte '() (Result (i64))))
+                          (Import 'io 'write (FuncSignature 'writeByte (list '_) (Result (i64))))
+                          (Import 'io 'peek (FuncSignature 'peekByte '() (Result (i64))))
+                          (Import 'err 'error (FuncSignature 'error '() (Result (i64))))
+                          (Export 'main (ExportFuncSignature 'main))
+                          (MemoryExport)
+                          (Global heap-name (i32) (Const 0))
+                          (Global stack-name (i32) (Const  top-stack-address))
+                          (Func (FuncSignature 'main '() (Result (i64))) '(assert_scratch) 
+                            (Body (seq (compile-e e '()))))
+                          (FuncList (compile-defines ds))))]))
 
 (define (compile-es es c)
     (match es
@@ -55,8 +59,12 @@
         [(Char c) (Const (imm->bits c))]
         [(Var id) (compile-variable id c)]
         [(Str s)  (compile-string s)]
+        [(Eof) (Const (imm->bits eof))]
+        [(Prim0 p) (compile-prim0 p)]
         [(Prim1 p e) (compile-prim1 p e c)]
         [(Prim2 p e1 e2) (compile-prim2 p e1 e2 c)]
+        [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
+        [(Begin e1 e2) (compile-begin e1 e2 c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
         [(Let id e1 e2) (compile-let id e1 e2 c)]
         [(App f es) (seq (compile-app f es c))]))
@@ -66,20 +74,32 @@
         [param (seq (GetLocal (Name id)))] 
         [i (seq 
             (LoadHeap (i64) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) (+ i 8)))))]))
+            
+(define (compile-prim0 p)
+    (match p
+        ['void (Const val-void)]
+        ['read-byte (Call 'readByte)]
+        ['peek-byte (Call 'peekByte)]))
 
 (define (compile-prim1 p e c)
     (match p
-        ['add1 (Add (compile-e e c) (Const (imm->bits 1)))]
-        ['sub1 (Sub (compile-e e c) (Const (imm->bits 1)))] 
+        ['add1 (Add (assert-integer (compile-e e c)) (Const (imm->bits 1)))]
+        ['sub1 (Sub (assert-integer (compile-e e c)) (Const (imm->bits 1)))] 
         ['zero?
-            (WatIf (Eqz (compile-e e c))
+            (WatIf (Eqz (assert-integer (compile-e e c)))
                 (Const val-true)
                 (Const val-false))]
         ['char? (compile-is-type mask-char type-char e c)]
         ['char->integer
-            (Sal (Sar (compile-e e c) (Const char-shift)) (Const int-shift))]
+            (Sal (Sar (assert-char (compile-e e c)) (Const char-shift)) (Const int-shift))]
         ['integer->char
-            (Xor (Sal (Sar (compile-e e c) (Const int-shift)) (Const char-shift)) (Const type-char))]
+            (Xor (Sal (Sar (assert-codepoint (compile-e e c)) (Const int-shift)) (Const char-shift)) (Const type-char))]
+        ['eof-object? 
+            (WatIf (Eq (compile-e e c) (Const val-eof))
+                (Const val-true)
+                (Const val-false))]
+        ['write-byte (seq (assert-byte (compile-e e c)) (Call 'writeByte))]
+        ;; TODO: assert box, etc
         ['box (store-box e c)]
         ['unbox (load-from-heap e type-box (Const 0) c)]
         ['box? (compile-is-type ptr-mask type-box e c)]
@@ -92,14 +112,14 @@
    (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)))
         (match p
             ['eq? (Eq e1 e2)]
-            ['< (Lt e1 e2)]
-            ['> (Gt e1 e2)]
-            ['>= (Ge e1 e2)]
-            ['<= (Le e1 e2)]
-            ['+ (Add e1 e2)]
-            ['- (Sub e1 e2)]
-            ['+ (Mul e1 e2)]
-            ['/ (Div e1 e2)]
+            ['< (Lt (assert-integer e1) (assert-integer e2))]
+            ['> (Gt (assert-integer e1) (assert-integer e2))]
+            ['>= (Ge (assert-integer e1) (assert-integer e2))]
+            ['<= (Le (assert-integer e1) (assert-integer e2))]
+            ['+ (Add (assert-integer e1) (assert-integer e2))]
+            ['- (Sub (assert-integer e1) (assert-integer e2))]
+            ['+ (Mul (assert-integer e1) (assert-integer e2))]
+            ['/ (Div (assert-integer e1) (assert-integer e2))]
             ['or (Or e1 e2)]
             ['and (And e1 e2)]
             ['xor (Xor e1 e2)]
@@ -147,6 +167,11 @@
     (seq (Xor (32->64 (GetGlobal (Name heap-name))) (Const type)))
 )
 
+(define (compile-begin e1 e2 c)
+    (seq (compile-e e1 c)
+         (Drop)
+         (compile-e e2 c)))
+
 ;; Stores a box on the heap.
 (define (store-box e c)
     (seq
@@ -180,7 +205,7 @@
 ;; Id CEnv -> Integer
 (define (lookup x cenv)
   (match cenv
-    ['() 'err]
+    ['() (error (string-append (symbol->string x) ": Symbol does not exist in this scope"))]
     [(cons (cons type y) rest)
      (match (eq? x y)
        [#t (match x
@@ -191,3 +216,37 @@
             [param (lookup x rest)]
        )])])) 
        
+(define (err)
+    (Call 'error)
+)
+
+(define (assert-type mask type)
+    (λ (arg)
+        (seq (SetLocal (Name 'assert_scratch) arg)
+             (WatIf (Ne (And (GetLocal (Name 'assert_scratch)) mask) type) 
+                    (err) 
+                    (GetLocal (Name 'assert_scratch))))))
+
+(define assert-integer
+    (assert-type (Const mask-int) (Const type-int)))
+(define assert-char
+    (assert-type (Const mask-char) (Const type-char)))
+
+(define (assert-codepoint arg)
+    (seq (SetLocal (Name 'assert_scratch) arg)
+         (WatIf (Lt (GetLocal (Name 'assert_scratch)) (imm->bits 0)) 
+                (err)
+                (WatIf  (Gt (GetLocal (Name 'assert_scratch)) (imm->bits 1114111)) 
+                        (err)
+                        (WatIf (And (Ge (GetLocal (Name 'assert_scratch)) (imm->bits 55295)) 
+                                    (Le (GetLocal (Name 'assert_scratch)) (imm->bits 57344))) 
+                               (err) 
+                               (GetLocal (Name 'assert_scratch)))))))
+
+(define (assert-byte arg)
+    (seq (SetLocal (Name 'assert_scratch) arg)
+         (WatIf (Lt (GetLocal (Name 'assert_scratch)) (imm->bits 0)) 
+                (err)
+                (WatIf (Gt (GetLocal (Name 'assert_scratch)) (imm->bits 255)) 
+                       (err) 
+                       (GetLocal (Name 'assert_scratch))))))
