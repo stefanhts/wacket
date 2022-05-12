@@ -70,7 +70,7 @@
 
 (define (compile-variable id c)
     (match (lookup id c)
-        [param (seq (GetLocal (Name id)))] 
+        ['param (seq (GetLocal (Name id)))] 
         [i (seq 
             (LoadHeap (i64) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) (+ i 8)))))]))
 
