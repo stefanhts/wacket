@@ -2,6 +2,7 @@
 
 (provide (all-defined-out))
 
+(struct Comment (c) #:prefab)
 ;; type Module = (Module (Listof definitions))
 (struct Module (ds) #:prefab)
 ;; type Import = (Import (modulename funcname FuncSignature)) 
@@ -80,6 +81,8 @@
 
 (struct GetLocal (n) #:prefab)
 
+(struct TeeLocal (n i) #:prefab) ;; set local var without removing from stack
+
 (struct SetLocal (n i) #:prefab)
 
 (struct GetGlobal (n) #:prefab)
@@ -106,6 +109,8 @@
 (struct Start (f) #:prefab)
 ;; type Call = (Call (funcName))
 (struct Call (f) #:prefab)
+;; type CallIndirect = (CallIndirect (funcindex))
+(struct CallIndirect (i) #:prefab)
 ;; type Drop = (Drop)
 ;; this is for popping things off stack and discarding them
 (struct Drop () #:prefab)
