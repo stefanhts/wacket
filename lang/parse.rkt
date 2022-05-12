@@ -36,14 +36,19 @@
       [(list (? (op? op2) p2) e1 e2) (Prim2 p2 (parse-e e1) (parse-e e2))]
       [(list (? (op? op3) p3) e1 e2 e3)
        (Prim3 p3 (parse-e e1) (parse-e e2) (parse-e e3))]
-      ; [(list 'begin e1 e2)
-      ;  (Begin (parse-e e1) (parse-e e2))]
+      [(list 'begin e1 e2)
+       (Begin (parse-e e1) (parse-e e2))]
       [(list 'if e1 e2 e3)
        (If (parse-e e1) (parse-e e2) (parse-e e3))]
       [(list 'let (list (list (? symbol? x) e1)) e2)
        (Let x (parse-e e1) (parse-e e2))]
-      [(cons (? symbol? f) es)
-       (App f (map parse-e es))]
+      [(list (or 'lambda 'λ) xs e)
+       (if (and (list? xs)
+                (andmap symbol? xs))
+           (Lam (gensym 'lambda) xs (parse-e e))
+           (error "parse lambda error"))]
+      [(cons e es)
+       (App (parse-e e) (map parse-e es))]
       [_ (error "Parse error" s)]))
    
   (define op0
