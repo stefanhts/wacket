@@ -112,6 +112,9 @@
 (define (parse-instruction-list is ntabs)
     (match is
         ['() ""]
+        [(cons (Comment c) is) (string-append 
+            (tabs ntabs) ";; " c "\n" 
+            (parse-instruction-list is ntabs))]
         [(cons (Result t) is) (string-append 
             (tabs ntabs) "(result " (wattype->string t) ")\n" 
             (parse-instruction-list is ntabs))]
@@ -120,6 +123,10 @@
             (parse-instruction-list is ntabs))]
         [(cons (Call f) is) (string-append (tabs ntabs) "(call $" (symbol->string f) ")\n" 
         (parse-instruction-list is ntabs))]
+        [(cons (CallIndirect i) is) (string-append (tabs ntabs) "(call_indirect (type $return_i64) (\n" ;; TODO make type return_i64
+            (parse-instruction-list (seq i) (add1 ntabs)) 
+            (tabs ntabs) "))\n" 
+            (parse-instruction-list is ntabs))]
         [(cons (WatIf p t f) is) (string-append
             (tabs ntabs) "(if (result i64)\n"
             (parse-instruction-list (seq p t f) (add1 ntabs))
@@ -139,7 +146,13 @@
             (parse-instruction-list next-is ntabs))]
         [(cons (GetLocal (Name n)) is) (string-append (tabs ntabs) "(local.get $" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs))]
+        [(cons (SetLocal (Name n) '()) is) (string-append (tabs ntabs) "(local.set $" (symbol->string n) ")\n"
+            (parse-instruction-list is ntabs))]
         [(cons (SetLocal (Name n) i) is) (string-append (tabs ntabs) "(local.set $" (symbol->string n) "\n"
+            (parse-instruction-list (seq i) (add1 ntabs))
+            (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs))]
+        [(cons (TeeLocal (Name n) i) is) (string-append (tabs ntabs) "(local.tee $" (symbol->string n) "\n"
             (parse-instruction-list (seq i) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]

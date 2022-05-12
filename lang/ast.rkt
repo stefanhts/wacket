@@ -2,6 +2,8 @@
 
 (provide (all-defined-out))
 
+(define lam_heap_loc (gensym 'lam_heap_loc))
+
 ;; type Prog = (Prog (Listof Defn) Expr)
 (struct Prog (ds e) #:prefab)
 
