@@ -1,2 +1,3 @@
 #lang wacket
-(* 1 2)
+(define (lil_fun x y) (* (add1 x) y))
+(lil_fun -13 4)
