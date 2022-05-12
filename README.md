@@ -84,6 +84,7 @@ This tricks the syntax checker because it looks at `/usr/share/racket/collects/w
 - Prim0
 - Strings
 - Vectors
+- assert-types for box/cons
 
 ## Complete
 
