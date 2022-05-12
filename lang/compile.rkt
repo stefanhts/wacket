@@ -110,17 +110,16 @@
                 (Const val-true)
                 (Const val-false))]
         ['write-byte (seq (assert-byte (compile-e e c)) (Call 'writeByte))]
-        ;; TODO: assert box, etc
         ['box (store-box e c)]
-        ['unbox (load-from-heap (compile-e e c) type-box (Const 0))]
+        ['unbox (load-from-heap (assert-box (compile-e e c)) type-box (Const 0))]
         ['box? (compile-is-type ptr-mask type-box e c)]
-        ['car (load-from-heap (compile-e e c) type-cons (Const 8))]
-        ['cdr (load-from-heap (compile-e e c) type-cons (Const 0))]
+        ['car (load-from-heap (assert-cons (compile-e e c)) type-cons (Const 8))]
+        ['cdr (load-from-heap (assert-cons (compile-e e c)) type-cons (Const 0))]
         ['cons? (compile-is-type ptr-mask type-cons e c)]
         ['vector? (compile-is-type ptr-mask type-vect e c)]
-        ['vector-length (Sal (load-from-heap (compile-e e c) type-vect (Const 0)) (Const int-shift))]
+        ['vector-length (Sal (load-from-heap (assert-vector (compile-e e c)) type-vect (Const 0)) (Const int-shift))]
         ['string? (compile-is-type ptr-mask type-str e c)]
-        ['string-length (Sal (load-from-heap (compile-e e c) type-str (Const 0)) (Const int-shift))]))
+        ['string-length (Sal (load-from-heap (assert-string (compile-e e c)) type-str (Const 0)) (Const int-shift))]))
         
 (define (compile-prim2 p e1 e2 c)
    (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)))
@@ -141,15 +140,14 @@
             ['<< (Sal e1 e2)]
             ['cons (compile-cons e1 e2)]
             ['make-vector (compile-make-heap-vector e1 e2 type-vect)]
-            ['vector-ref (compile-ref e1 e2 type-vect)]
+            ['vector-ref (compile-ref (assert-vector e1) e2 type-vect)]
             ['make-string (compile-make-heap-vector e1 e2 type-str)]
-            ['string-ref (compile-ref e1 e2 type-str)])))
+            ['string-ref (compile-ref (assert-string e1) e2 type-str)])))
 
 (define (compile-prim3 p e1 e2 e3 c)
     (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)) (e3 (compile-e e3 c)))
         (match p
             ['vector-set! (seq
-                ;; TODO: Assert vector/integer
                 (SetLocal (Name secondary-pointer) e1)
                 (SetLocal (Name 'assert_scratch) (load-from-heap (GetLocal (Name secondary-pointer)) type-vect (Const 0)))
                 (WatIf (64->32 (And 
@@ -313,6 +311,14 @@
     (assert-type (Const mask-int) (Const type-int)))
 (define assert-char
     (assert-type (Const mask-char) (Const type-char)))
+(define assert-box
+    (assert-type (Const ptr-mask) (Const type-box)))
+(define assert-cons
+    (assert-type (Const ptr-mask) (Const type-cons)))
+(define assert-string
+    (assert-type (Const ptr-mask) (Const type-str)))
+(define assert-vector
+    (assert-type (Const ptr-mask) (Const type-vect)))
 
 (define (assert-codepoint arg)
     (seq (SetLocal (Name 'assert_scratch) arg)
