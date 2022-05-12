@@ -139,7 +139,7 @@
             (parse-instruction-list next-is ntabs))]
         [(cons (GetLocal (Name n)) is) (string-append (tabs ntabs) "(local.get $" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs))]
-        [(cons (SetLocal (Name n) i) is) (string-append (tabs ntabs) "(local.set $" n "\n"
+        [(cons (SetLocal (Name n) i) is) (string-append (tabs ntabs) "(local.set $" (symbol->string n) "\n"
             (parse-instruction-list (seq i) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
