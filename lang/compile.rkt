@@ -16,7 +16,7 @@
                           (Export 'main (ExportFuncSignature 'main))
                           (MemoryExport)
                           (Global heap-name (i32) (Const 0))
-                          (Global stack-name (i32) (Const  top-stack-address))
+                          (Global stack-name (i32) (Const top-stack-address))
                           (Func (FuncSignature 'main '() (Result (i64))) '(assert_scratch) 
                             (Body (seq (compile-e e '()))))
                           (FuncList (compile-defines ds))))]))
@@ -183,8 +183,23 @@
 
 (define (compile-string s)
  (let ((len (string-length s)))
-    (if (zero? len) (seq (Const type-str)) 'err)
-)) ; TODO(peter)
+    (if (zero? len) (seq (Const type-str)) (seq
+        (get-tagged-heap-address type-str)
+        (GetGlobal (Name heap-name))
+        (increment-heap-pointer)
+        (StoreHeap (i64) (Const len))
+        (compile-string-chars (string->list s))
+    ))
+))
+
+(define (compile-string-chars cs)
+    (match cs
+        ['() (seq)]
+        [(cons c cs) (seq
+            (GetGlobal (Name heap-name))
+            (increment-heap-pointer)
+            (StoreHeap (i64) (Const (imm->bits c)))
+            (compile-string-chars cs))]))
 
 ;; Helper function for getting a value from the heap and pushing it's value to the stack.
 (define (load-from-heap e type offset c)
