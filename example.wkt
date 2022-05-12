@@ -1,3 +1,2 @@
 #lang wacket
-(define (lil_fun x y) (* (add1 x) y))
-(lil_fun -13 4)
+(let ((y 5)) ((lambda (x) y) 4))

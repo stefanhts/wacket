@@ -45,7 +45,7 @@
       [(list (or 'lambda 'λ) xs e)
        (if (and (list? xs)
                 (andmap symbol? xs))
-           (Lam (gensym 'lambda) xs (parse-e e))
+           (Lam (gensym 'lambda) (cons lam_heap_loc xs) (parse-e e))
            (error "parse lambda error"))]
       [(cons e es)
        (App (parse-e e) (map parse-e es))]
