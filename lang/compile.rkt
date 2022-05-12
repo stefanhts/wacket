@@ -208,12 +208,12 @@
     ['() (error (string-append (symbol->string x) ": Symbol does not exist in this scope"))]
     [(cons (cons type y) rest)
      (match (eq? x y)
-       [#t (match x
-            [local 0]
-            [param param])]
-       [#f (match x
-            [local (+ 8 (lookup x rest))]
-            [param (lookup x rest)]
+       [#t (match type
+            ['local 0]
+            ['param param])]
+       [#f (match type
+            ['local (+ 8 (lookup x rest))]
+            ['param (lookup x rest)]
        )])])) 
        
 (define (err)
