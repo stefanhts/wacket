@@ -54,6 +54,7 @@
         [(Bool b) (Const (imm->bits b))]
         [(Char c) (Const (imm->bits c))]
         [(Var id) (compile-variable id c)]
+        [(Str s)  (compile-string s)]
         [(Prim1 p e) (compile-prim1 p e c)]
         [(Prim2 p e1 e2) (compile-prim2 p e1 e2 c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
@@ -84,7 +85,8 @@
         ['box? (compile-is-type ptr-mask type-box e c)]
         ['car (load-from-heap e type-cons (Const 8) c)]
         ['cdr (load-from-heap e type-cons (Const 0) c)]
-        ['cons? (compile-is-type ptr-mask type-cons e c)]))
+        ['cons? (compile-is-type ptr-mask type-cons e c)]
+        ['string? (compile-is-type ptr-mask type-str e c)]))
         
 (define (compile-prim2 p e1 e2 c)
    (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)))
@@ -152,6 +154,12 @@
         (GetGlobal (Name heap-name))
         (increment-heap-pointer)
         (StoreHeap (i64) (compile-e e c))))
+
+
+(define (compile-string s)
+ (let ((len (string-length s)))
+    (if (zero? len) (seq (Const type-str)) 'err)
+)) ; TODO(peter)
 
 ;; Helper function for getting a value from the heap and pushing it's value to the stack.
 (define (load-from-heap e type offset c)
