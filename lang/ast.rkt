@@ -38,4 +38,5 @@
 (struct Begin (e1 e2)      #:prefab)
 (struct Let   (x e1 e2)    #:prefab)
 (struct Var   (x)          #:prefab)
-(struct App   (f es)       #:prefab)
+(struct App   (e es)       #:prefab)
+(struct Lam   (f xs e)     #:prefab)
