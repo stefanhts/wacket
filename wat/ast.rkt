@@ -16,7 +16,8 @@
 (struct Func (s ls b) #:prefab)
 ;; type FuncList = (FuncList (Listof Func))
 (struct FuncList (fs) #:prefab)
-;; type FuncSignature = (FuncSignature (name? (Listof Params) Result))
+;; type FuncSignature = (FuncSignature (name? (Listof Params) Result?))
+;; replace r with empty list for no return value
 (struct FuncSignature (n ps r) #:prefab)
 ;; type ExportFuncSignature = (ExportFuncSignature (name))
 (struct ExportFuncSignature (n) #:prefab)

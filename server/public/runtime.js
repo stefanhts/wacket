@@ -33,7 +33,13 @@ let STDIN = []
 let STDOUT = []
 const output = document.getElementById("res")
 let result = ""
-const importObject = { io: {read: readByte, write: writeByte, peek: peekByte}};
+const importObject = { io:  {read: readByte, write: writeByte, peek: peekByte},
+                       err: {error: error}};
+
+function error() {
+  output.innerHTML = output.innerHTML + "\n-----------------\n| RUNTIME ERROR |\n-----------------"
+  throw "Runtime Error"
+}
 
 function run(){
     output.innerHTML = " "
