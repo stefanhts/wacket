@@ -31,6 +31,17 @@
             (tabs ntabs) "(memory (export \"memory\") 2)\n"
             (parse-definitions ds ntabs)
         )]
+        [(cons (Table n) ds) (string-append
+            (tabs ntabs) "(table "(number->string n) " funcref)\n"
+            (parse-definitions ds ntabs))]
+        [(cons (TypeDec) ds) (string-append
+            (tabs ntabs) "(type $return_i32 (func (result i32))\n"
+            (parse-definitions ds ntabs))]
+        [(cons (Type) ds) (string-append
+            (tabs ntabs) "(type $return_i32)\n" 
+            (parse-definitions ds ntabs))]
+        [(cons (Elem es) ds) (string-append
+            (tabs ntabs) "(elem " (parse-elems) ")")]
         [(cons (Export n d) ds) (string-append
             (parse-export n d ntabs)
             (parse-definitions ds ntabs))]
@@ -91,6 +102,12 @@
         [x (parse-error "Expected const, got " x)]
 ))
 
+(define (parse-elems es ntabs)
+    (match es
+        [(cons e es)
+            (string-append " $" (symbol->string e) (parse-elems es ntabs))]
+        ['() ""]
+    ))
 (define (parse-func s ls b ntabs) 
     (string-append
         (tabs ntabs) "(func " (parse-funcsig s ntabs) "\n"
