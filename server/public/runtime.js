@@ -27,26 +27,47 @@ const val_eof = ((2n << char_shift) | nonchar_type_tag)
 const val_void = ((3n << char_shift) | nonchar_type_tag)
 const val_empty = ((4n << char_shift) | nonchar_type_tag)
 
+let ENCODER = new TextEncoder()
+let DECODER = new TextDecoder()
+let STDIN = []
+let STDOUT = []
+const output = document.getElementById("res")
+let result = ""
+const importObject = { io:  {read: readByte, write: writeByte, peek: peekByte},
+                       err: {error: error}};
 
-function run() {
-  const input = document.getElementById("inputbox").value;
-  const output = document.getElementById("res");
-  (async () => {
-    console.log("running 'run'");
-    const response = await fetch('main.wasm');
-    const buffer = await response.arrayBuffer();
-    const module = new WebAssembly.Module(buffer);
-    const instance = new WebAssembly.Instance(module);
-    const rawResult = instance.exports.main(42);
-    const memory = instance.exports.memory;
-    var i32 = new Uint32Array(memory.buffer)
-    console.log(i32)
-    console.log(memory.buffer)
-    console.log("raw: ", rawResult);
-    const result = unwrap(rawResult);
-    console.log("result: ", result);
-    output.innerHTML = result;
-  })();
+function error() {
+  output.innerHTML = output.innerHTML + "\n-----------------\n| RUNTIME ERROR |\n-----------------"
+  throw "Runtime Error"
+}
+
+function run(){
+    output.innerHTML = " "
+    input = document.getElementById("inputbox").value;
+    (async () => {
+        console.log("running 'run'");
+        const response = await fetch('main.wasm');
+        const buffer = await response.arrayBuffer();
+        const module = new WebAssembly.Module(buffer);
+        const instance = new WebAssembly.Instance(module, importObject);
+        console.log("input: ", input);
+        console.log("input type: ", typeof input);
+        STDIN = Array.from(ENCODER.encode(input));
+        console.log("STDIN: ", STDIN);
+        console.log("STDOUT: ", STDOUT);
+        const rawResult = instance.exports.main(42);
+        const memory = instance.exports.memory;
+        var i32 = new Uint32Array(memory.buffer)
+        console.log(i32)
+        console.log(memory.buffer)
+        flushSTDOUT();
+        console.log("raw: ", rawResult);
+        const unwrappedResult = unwrap(rawResult);
+        console.log("unwrapped: ", unwrappedResult);
+        result = unwrappedResult;
+        console.log("result: ", result);
+        output.innerHTML = output.innerHTML + result;
+      })();
 }
 
 const typesEnum = Object.freeze({
@@ -109,7 +130,7 @@ function unwrap(raw) {
     case typesEnum.T_EOF:
       return "#<eof>"
     case typesEnum.T_VOID:
-      return ""
+      return " "
     case typesEnum.T_EMPTY:
     case typesEnum.T_CONS:
     case typesEnum.T_BOX:
@@ -199,4 +220,35 @@ function val_wrap_eof() {
 
 function val_wrap_void() {
   return val_void
+}
+
+function readByte(){
+    console.log("reading byte!");
+    if(STDIN.length < 1) {
+      return val_eof
+    }
+    return val_wrap_int(BigInt(STDIN.shift()))
+}
+
+function writeByte(byte){
+    console.log("writing byte!");
+    const unwrappedByte = val_unwrap_int(byte);
+    STDOUT.push(Number(unwrappedByte))
+    return val_wrap_void();
+}
+
+function peekByte(){
+    console.log("peeking byte!");
+    if(STDIN.length < 1) {
+      return val_eof
+    }
+    return val_wrap_int(BigInt(STDIN[0]))
+}
+
+function flushSTDOUT() {
+    console.log("STDOUT before Uint8 conversion: ", STDOUT);
+    STDOUT = Uint8Array.from(STDOUT);
+    console.log("STDOUT: ", STDOUT);
+    output.innerHTML = output.innerHTML + DECODER.decode(STDOUT);
+    STDOUT = []
 }
