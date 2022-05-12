@@ -64,6 +64,9 @@
         [(FuncSignature n ps (Result t)) (string-append
            "(func $" (symbol->string n) (parse-params ps ntabs) " (result " (wattype->string t) "))" 
         )]
+        ; [(FuncSignature n ps '()) (string-append
+        ;    "(func $" (symbol->string n) (parse-params ps ntabs) ")" 
+        ; )]
         [x (parse-error "Should be FuncSignature (input), was:" x)]))
 
 (define (parse-export n fs ntabs) 
@@ -120,6 +123,13 @@
             (parse-instruction-list is ntabs))]
         [(cons (Call f) is) (string-append (tabs ntabs) "(call $" (symbol->string f) ")\n" 
         (parse-instruction-list is ntabs))]
+        ; ;; the following is used for assert-type
+        ; [(cons (WatIf p t '()) is) (string-append
+        ;     (tabs ntabs) "(if\n"
+        ;     (parse-instruction-list (seq p t) (add1 ntabs))
+        ;     (tabs (add1 ntabs)) "(nop)"
+        ;     (tabs ntabs) ")\n"
+        ;     (parse-instruction-list is ntabs))]
         [(cons (WatIf p t f) is) (string-append
             (tabs ntabs) "(if (result i64)\n"
             (parse-instruction-list (seq p t f) (add1 ntabs))
@@ -139,7 +149,7 @@
             (parse-instruction-list next-is ntabs))]
         [(cons (GetLocal (Name n)) is) (string-append (tabs ntabs) "(local.get $" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs))]
-        [(cons (SetLocal (Name n) i) is) (string-append (tabs ntabs) "(local.set $" n "\n"
+        [(cons (SetLocal (Name n) i) is) (string-append (tabs ntabs) "(local.set $" (symbol->string n) "\n"
             (parse-instruction-list (seq i) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
