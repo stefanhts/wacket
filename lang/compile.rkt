@@ -6,6 +6,8 @@
 (define stack-name (gensym 'stack))
 (define top-stack-address 16384)
 (define heap-name (gensym 'heap))
+(define internal-pointer (gensym 'i))
+(define secondary-pointer (gensym 'j))
 (define (compile e)
     (match e
         [(Prog ds e)
@@ -16,8 +18,8 @@
                           (Export 'main (ExportFuncSignature 'main))
                           (MemoryExport)
                           (Global heap-name (i32) (Const 0))
-                          (Global stack-name (i32) (Const  top-stack-address))
-                          (Func (FuncSignature 'main '() (Result (i64))) '(assert_scratch) 
+                          (Global stack-name (i32) (Const top-stack-address))
+                          (Func (FuncSignature 'main '() (Result (i64))) (list 'assert_scratch internal-pointer secondary-pointer) 
                             (Body (seq (compile-e e '()))))
                           (FuncList (compile-defines ds))))]))
 
@@ -57,13 +59,15 @@
         [(Int n) (Const (imm->bits n))]
         [(Bool b) (Const (imm->bits b))]
         [(Char c) (Const (imm->bits c))]
+        [(Var id) (compile-variable id c)]
+        [(Str s)  (compile-string s)]
         [(Eof) (Const (imm->bits eof))]
         [(Prim0 p) (compile-prim0 p)]
         [(Prim1 p e) (compile-prim1 p e c)]
         [(Prim2 p e1 e2) (compile-prim2 p e1 e2 c)]
+        [(Prim3 p e1 e2 e3) (compile-prim3 p e1 e2 e3 c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
         [(Begin e1 e2) (compile-begin e1 e2 c)]
-        [(Var id) (compile-variable id c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
         [(Let id e1 e2) (compile-let id e1 e2 c)]
         [(App f es) (seq (compile-app f es c))]))
@@ -108,11 +112,15 @@
         ['write-byte (seq (assert-byte (compile-e e c)) (Call 'writeByte))]
         ;; TODO: assert box, etc
         ['box (store-box e c)]
-        ['unbox (load-from-heap e type-box (Const 0) c)]
+        ['unbox (load-from-heap (compile-e e c) type-box (Const 0))]
         ['box? (compile-is-type ptr-mask type-box e c)]
-        ['car (load-from-heap e type-cons (Const 8) c)]
-        ['cdr (load-from-heap e type-cons (Const 0) c)]
-        ['cons? (compile-is-type ptr-mask type-cons e c)]))
+        ['car (load-from-heap (compile-e e c) type-cons (Const 8))]
+        ['cdr (load-from-heap (compile-e e c) type-cons (Const 0))]
+        ['cons? (compile-is-type ptr-mask type-cons e c)]
+        ['vector? (compile-is-type ptr-mask type-vect e c)]
+        ['vector-length (Sal (load-from-heap (compile-e e c) type-vect (Const 0)) (Const int-shift))]
+        ['string? (compile-is-type ptr-mask type-str e c)]
+        ['string-length (Sal (load-from-heap (compile-e e c) type-str (Const 0)) (Const int-shift))]))
         
 (define (compile-prim2 p e1 e2 c)
    (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)))
@@ -131,14 +139,67 @@
             ['xor (Xor e1 e2)]
             ['>> (Sar e1 e2)]
             ['<< (Sal e1 e2)]
-            ['cons (seq
-            (get-tagged-heap-address type-cons) ; The return value.
-            (GetGlobal (Name heap-name))        ; The first cell of the cons.
+            ['cons (compile-cons e1 e2)]
+            ['make-vector (compile-make-heap-vector e1 e2 type-vect)]
+            ['vector-ref (compile-ref e1 e2 type-vect)]
+            ['make-string (compile-make-heap-vector e1 e2 type-str)]
+            ['string-ref (compile-ref e1 e2 type-str)])))
+
+(define (compile-prim3 p e1 e2 e3 c)
+    (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)) (e3 (compile-e e3 c)))
+        (match p
+            ['vector-set! (seq
+                ;; TODO: Assert vector/integer
+                (SetLocal (Name secondary-pointer) e1)
+                (SetLocal (Name 'assert_scratch) (load-from-heap (GetLocal (Name secondary-pointer)) type-vect (Const 0)))
+                (WatIf (64->32 (And 
+                    (32->64 (Ge (Sar e2 (Const int-shift)) (Const 0))) 
+                    (32->64 (Lt (Sar e2 (Const int-shift)) (GetLocal (Name 'assert_scratch))))))
+
+                    (seq
+                        (64->32 (Add (Xor (GetLocal (Name secondary-pointer)) (Const type-vect)) (Mul (Const 8) (Add (Const 1) (Sar e2 (Const int-shift))))))
+                        (StoreHeap (i64) e3)
+                        (Const val-void)
+                    )
+                    (err)))])))
+
+(define (compile-cons e1 e2)
+    (seq
+        (get-tagged-heap-address type-cons) ; The return value.
+        (GetGlobal (Name heap-name))        ; The first cell of the cons.
+        (increment-heap-pointer)
+        (GetGlobal (Name heap-name))        ; The second cell of the cons.
+        (increment-heap-pointer)
+        (StoreHeap (i64) e1)
+        (StoreHeap (i64) e2)))
+
+(define (compile-make-heap-vector e1 e2 type)
+    (WatIf (Eqz e1) (Const type) (let ((loop-name (gensym 'loop))) (seq
+        (get-tagged-heap-address type)
+        (GetGlobal (Name heap-name))
+        (increment-heap-pointer)
+        (StoreHeap (i64) (Sar e1 (Const int-shift))) ; Write the length of the vector.
+        (SetLocal (Name internal-pointer) (Sar e1 (Const int-shift)))
+        (Loop (seq
+            (GetGlobal (Name heap-name))
             (increment-heap-pointer)
-            (GetGlobal (Name heap-name))        ; The second cell of the cons.
-            (increment-heap-pointer)
-            (StoreHeap (i64) e1)
-            (StoreHeap (i64) e2))])))
+            (StoreHeap (i64) e2)
+            (SetLocal (Name internal-pointer) (Sub (GetLocal (Name internal-pointer)) (Const 1)))
+            (BranchIf (Gt (GetLocal (Name internal-pointer)) (Const 0)) loop-name)
+        ) loop-name)))))
+
+;; Gets by index in an array-type structure (vector or string currently).
+(define (compile-ref e1 e2 type)
+    (seq
+        (SetLocal (Name 'assert_scratch) (load-from-heap e1 type (Const 0)))
+        (WatIf (64->32 (And 
+                    (32->64 (Ge (Sar e2 (Const int-shift)) (Const 0))) 
+                    (32->64 (Lt (Sar e2 (Const int-shift)) (GetLocal (Name 'assert_scratch))))))
+
+            (load-from-heap e1 type (Mul (Const 8) (Add (Const 1) (Sar e2 (Const int-shift)))))
+            (err)
+        )
+))
 
 (define (compile-let id e1 e2 c)
     (seq
@@ -186,10 +247,31 @@
         (increment-heap-pointer)
         (StoreHeap (i64) (compile-e e c))))
 
+
+(define (compile-string s)
+ (let ((len (string-length s)))
+    (if (zero? len) (seq (Const type-str)) (seq
+        (get-tagged-heap-address type-str)
+        (GetGlobal (Name heap-name))
+        (increment-heap-pointer)
+        (StoreHeap (i64) (Const len))
+        (compile-string-chars (string->list s))
+    ))
+))
+
+(define (compile-string-chars cs)
+    (match cs
+        ['() (seq)]
+        [(cons c cs) (seq
+            (GetGlobal (Name heap-name))
+            (increment-heap-pointer)
+            (StoreHeap (i64) (Const (imm->bits c)))
+            (compile-string-chars cs))]))
+
 ;; Helper function for getting a value from the heap and pushing it's value to the stack.
-(define (load-from-heap e type offset c)
+(define (load-from-heap e type offset)
     (seq
-        (LoadHeap (i64) (64->32 (Add offset (Xor (Const type) (compile-e e c)))))))
+        (LoadHeap (i64) (64->32 (Add offset (Xor (Const type) e))))))
 
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3 c)
