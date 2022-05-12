@@ -31,6 +31,18 @@
             (tabs ntabs) "(memory (export \"memory\") 2)\n"
             (parse-definitions ds ntabs)
         )]
+        [(cons (Table n) ds) (string-append
+            (tabs ntabs) "(table "(number->string n) " funcref)\n"
+            (parse-definitions ds ntabs))]
+        [(cons (TypeDec) ds) (string-append
+            (tabs ntabs) "(type $return_i32 (func (result i32))\n"
+            (parse-definitions ds ntabs))]
+        [(cons (Type) ds) (string-append
+            (tabs ntabs) "(type $return_i32)\n" 
+            (parse-definitions ds ntabs))]
+        [(cons (Elem es) ds) (string-append
+            (tabs ntabs) "(elem " (parse-elems) ")"
+            (parse-definitions ds ntabs))]
         [(cons (Export n d) ds) (string-append
             (parse-export n d ntabs)
             (parse-definitions ds ntabs))]
@@ -91,6 +103,12 @@
         [x (parse-error "Expected const, got " x)]
 ))
 
+(define (parse-elems es ntabs)
+    (match es
+        [(cons e es)
+            (string-append " $" (symbol->string e) (parse-elems es ntabs))]
+        ['() ""]
+    ))
 (define (parse-func s ls b ntabs) 
     (string-append
         (tabs ntabs) "(func " (parse-funcsig s ntabs) "\n"
@@ -128,8 +146,13 @@
             (tabs ntabs) "))\n" 
             (parse-instruction-list is ntabs))]
         [(cons (WatIf p t f) is) (string-append
+            (parse-instruction-list (seq p) ntabs)
             (tabs ntabs) "(if (result i64)\n"
-            (parse-instruction-list (seq p t f) (add1 ntabs))
+            (tabs (add1 ntabs)) "(then\n" (parse-instruction-list (seq t) (+ 2 ntabs))
+            (tabs (add1 ntabs)) ")\n"
+            (tabs (add1 ntabs)) "(else\n"
+            (parse-instruction-list (seq f) (+ 2 ntabs))
+            (tabs (add1 ntabs)) ")\n"
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
         [(cons (ConstT t n) is) (string-append
@@ -174,9 +197,21 @@
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs)
         )]
+        [(cons (Loop e n) is) (string-append (tabs ntabs) "(loop $" (symbol->string n) "\n"
+            (parse-instruction-list (seq e) (add1 ntabs))
+            (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
+        [(cons (BranchIf p n) is) (string-append 
+            ;; Predicate needs to be on the stack, can't be set in an s-expression. Don't ask me why :)
+            (parse-instruction-list (seq p) ntabs)
+            (tabs ntabs) "(br_if $" (symbol->string n) ")\n"
+            (parse-instruction-list is ntabs)
+        )]
         [(cons (Drop) is) (string-append (tabs ntabs) "(drop)\n"
             (parse-instruction-list is ntabs)
         )]
+        [(cons (Load) is) (parse-instruction-list is ntabs)]
         [(cons x _) (parse-error "Instruction not recognized:" x)]
         [x (parse-error "Expected instruction list, got:" x)]))
 

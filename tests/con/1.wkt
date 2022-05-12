@@ -1,0 +1,2 @@
+#lang wacket
+(if (zero? (add1 0)) 69 42)

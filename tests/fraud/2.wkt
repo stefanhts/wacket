@@ -1,0 +1,2 @@
+#lang wacket
+(let ((x 42)) (let ((y x)) (+ x y)))
