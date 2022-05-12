@@ -41,7 +41,8 @@
             (tabs ntabs) "(type $return_i32)\n" 
             (parse-definitions ds ntabs))]
         [(cons (Elem es) ds) (string-append
-            (tabs ntabs) "(elem " (parse-elems) ")")]
+            (tabs ntabs) "(elem " (parse-elems) ")"
+            (parse-definitions ds ntabs))]
         [(cons (Export n d) ds) (string-append
             (parse-export n d ntabs)
             (parse-definitions ds ntabs))]
