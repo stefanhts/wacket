@@ -167,3 +167,8 @@ Some specifics to note:
 - Just like in class, the cons cell starts with the `cdr` and is followed by the `car` 8 bytes later.
 - The `StoreHeap` struct requires the address to be on the stack beforehand. This is so the `car` and `cdr` can be
   stored right next to each other in memory.
+
+## Compiling a test
+
+Run `make tests/{folder}/{number}.wasm` to compile to `main.wasm` in the `server/` folder, which can then be run
+from the frontend.
