@@ -73,6 +73,14 @@
         [param (seq (GetLocal (Name id)))] 
         [i (seq 
             (LoadHeap (i64) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) (+ i 8)))))]))
+
+;; does not recursively compile
+(define (runtime-bits->int e)
+    (Sar e (Const int-shift)))
+
+;; does not recursively compile
+(define (runtime-int->bits e)
+    (Sal e (Const int-shift)))
             
 (define (compile-prim0 p)
     (match p
@@ -116,8 +124,8 @@
             ['<= (Le (assert-integer e1) (assert-integer e2))]
             ['+ (Add (assert-integer e1) (assert-integer e2))]
             ['- (Sub (assert-integer e1) (assert-integer e2))]
-            ['* (Mul (assert-integer e1) (assert-integer e2))]
-            ['/ (Div (assert-integer e1) (assert-integer e2))]
+            ['* (runtime-int->bits (Mul (runtime-bits->int (assert-integer e1)) (runtime-bits->int(assert-integer e2))))]
+            ['/ (runtime-int->bits (Div (runtime-bits->int (assert-integer e1)) (runtime-bits->int(assert-integer e2))))]
             ['or (Or e1 e2)]
             ['and (And e1 e2)]
             ['xor (Xor e1 e2)]
