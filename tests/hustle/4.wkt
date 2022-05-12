@@ -1,0 +1,2 @@
+#lang wacket
+(cons? (cons 42 69))
