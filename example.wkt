@@ -1,2 +1,2 @@
 #lang wacket
-(string-length "abc")
+(vector-length (make-vector 3 69))

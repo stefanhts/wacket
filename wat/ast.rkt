@@ -90,6 +90,10 @@
 ;; This type implicitly requires the address to be stored on the stack before.
 ;; type StoreHeap = (Type Value)
 (struct StoreHeap (t v) #:prefab)
+;; type Loop = (Instructions LoopName)
+(struct Loop (e n) #:prefab)
+;; type BranchIf = (Predicate LoopName)
+(struct BranchIf (p n) #:prefab)
 
 ;; type Name = (Name (n))
 (struct Name (n) #:prefab)
@@ -105,6 +109,9 @@
 ;; type Drop = (Drop)
 ;; this is for popping things off stack and discarding them
 (struct Drop () #:prefab)
+;; type Load = (Load)
+;; Used when the value is known to be stored on the stack.
+(struct Load () #:prefab)
 
 ;; (U Instruction Asm) ... -> Asm
 ;; Convenient for sequencing instructions or groups of instructions

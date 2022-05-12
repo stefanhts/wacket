@@ -6,6 +6,7 @@
 (define stack-name (gensym 'stack))
 (define top-stack-address 16384)
 (define heap-name (gensym 'heap))
+(define internal-pointer (gensym 'i))
 (define (compile e)
     (match e
         [(Prog ds e)
@@ -17,7 +18,7 @@
                           (MemoryExport)
                           (Global heap-name (i32) (Const 0))
                           (Global stack-name (i32) (Const top-stack-address))
-                          (Func (FuncSignature 'main '() (Result (i64))) '(assert_scratch) 
+                          (Func (FuncSignature 'main '() (Result (i64))) (list 'assert_scratch internal-pointer) 
                             (Body (seq (compile-e e '()))))
                           (FuncList (compile-defines ds))))]))
 
@@ -106,8 +107,8 @@
         ['car (load-from-heap e type-cons (Const 8) c)]
         ['cdr (load-from-heap e type-cons (Const 0) c)]
         ['cons? (compile-is-type ptr-mask type-cons e c)]
-        ['vector? 'err]
-        ['vector-length 'err]
+        ['vector? (compile-is-type ptr-mask type-vect e c)]
+        ['vector-length (Sal (load-from-heap e type-vect (Const 0) c) (Const int-shift))]
         ['string? (compile-is-type ptr-mask type-str e c)]
         ['string-length (Sal (load-from-heap e type-str (Const 0) c) (Const int-shift))]))
         
@@ -128,14 +129,34 @@
             ['xor (Xor e1 e2)]
             ['>> (Sar e1 e2)]
             ['<< (Sal e1 e2)]
-            ['cons (seq
-            (get-tagged-heap-address type-cons) ; The return value.
-            (GetGlobal (Name heap-name))        ; The first cell of the cons.
+            ['make-vector (compile-make-vector e1 e2)]
+            ['cons (compile-cons e1 e2)])))
+
+(define (compile-cons e1 e2)
+    (seq
+        (get-tagged-heap-address type-cons) ; The return value.
+        (GetGlobal (Name heap-name))        ; The first cell of the cons.
+        (increment-heap-pointer)
+        (GetGlobal (Name heap-name))        ; The second cell of the cons.
+        (increment-heap-pointer)
+        (StoreHeap (i64) e1)
+        (StoreHeap (i64) e2)))
+
+(define (compile-make-vector e1 e2)
+    (WatIf (Eqz e1) (Const type-vect) (let ((loop-name (gensym 'vector))) (seq
+        (get-tagged-heap-address type-vect)
+        (GetGlobal (Name heap-name))
+        (increment-heap-pointer)
+        (StoreHeap (i64) (Sar e1 (Const int-shift))) ; Write the length of the vector.
+        (SetLocal (Name internal-pointer) (Sar e1 (Const int-shift)))
+        (Loop (seq
+            (GetGlobal (Name heap-name))
             (increment-heap-pointer)
-            (GetGlobal (Name heap-name))        ; The second cell of the cons.
-            (increment-heap-pointer)
-            (StoreHeap (i64) e1)
-            (StoreHeap (i64) e2))])))
+            (StoreHeap (i64) e2)
+            (SetLocal (Name internal-pointer) (Sub (GetLocal (Name internal-pointer)) (Const 1)))
+            (BranchIf (Gt (GetLocal (Name internal-pointer)) (Const 0)) loop-name)
+        ) loop-name)
+))))
 
 (define (compile-let id e1 e2 c)
     (seq

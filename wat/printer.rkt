@@ -171,9 +171,10 @@
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs)
         )]
-        [(cons (BranchIf p n) is) (string-append (tabs ntabs) "(br_if\n"
-            (parse-instruction-list (seq p) (add1 ntabs))
-            (tabs ntabs) "$" (symbol->string n) ")\n"
+        [(cons (BranchIf p n) is) (string-append 
+            ;; Predicate needs to be on the stack, can't be set in an s-expression. Don't ask me why :)
+            (parse-instruction-list (seq p) ntabs)
+            (tabs ntabs) "(br_if $" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs)
         )]
         [(cons (Drop) is) (string-append (tabs ntabs) "(drop)\n"
