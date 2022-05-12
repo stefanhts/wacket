@@ -102,15 +102,15 @@
         ['write-byte (seq (assert-byte (compile-e e c)) (Call 'writeByte))]
         ;; TODO: assert box, etc
         ['box (store-box e c)]
-        ['unbox (load-from-heap e type-box (Const 0) c)]
+        ['unbox (load-from-heap (compile-e e c) type-box (Const 0))]
         ['box? (compile-is-type ptr-mask type-box e c)]
-        ['car (load-from-heap e type-cons (Const 8) c)]
-        ['cdr (load-from-heap e type-cons (Const 0) c)]
+        ['car (load-from-heap (compile-e e c) type-cons (Const 8))]
+        ['cdr (load-from-heap (compile-e e c) type-cons (Const 0))]
         ['cons? (compile-is-type ptr-mask type-cons e c)]
         ['vector? (compile-is-type ptr-mask type-vect e c)]
-        ['vector-length (Sal (load-from-heap e type-vect (Const 0) c) (Const int-shift))]
+        ['vector-length (Sal (load-from-heap (compile-e e c) type-vect (Const 0)) (Const int-shift))]
         ['string? (compile-is-type ptr-mask type-str e c)]
-        ['string-length (Sal (load-from-heap e type-str (Const 0) c) (Const int-shift))]))
+        ['string-length (Sal (load-from-heap (compile-e e c) type-str (Const 0)) (Const int-shift))]))
         
 (define (compile-prim2 p e1 e2 c)
    (let ((e1 (compile-e e1 c)) (e2 (compile-e e2 c)))
@@ -129,8 +129,11 @@
             ['xor (Xor e1 e2)]
             ['>> (Sar e1 e2)]
             ['<< (Sal e1 e2)]
+            ['cons (compile-cons e1 e2)]
             ['make-vector (compile-make-vector e1 e2)]
-            ['cons (compile-cons e1 e2)])))
+            ['vector-ref (compile-ref e1 e2 type-vect)]
+            ['make-string 'err]
+            ['string-ref (compile-ref e1 e2 type-str)])))
 
 (define (compile-cons e1 e2)
     (seq
@@ -155,8 +158,20 @@
             (StoreHeap (i64) e2)
             (SetLocal (Name internal-pointer) (Sub (GetLocal (Name internal-pointer)) (Const 1)))
             (BranchIf (Gt (GetLocal (Name internal-pointer)) (Const 0)) loop-name)
-        ) loop-name)
-))))
+        ) loop-name)))))
+
+;; Gets by index in an array-type structure (vector or string currently).
+(define (compile-ref e1 e2 type)
+    (seq
+        (SetLocal (Name 'assert_scratch) (load-from-heap e1 type (Const 0)))
+        (WatIf (64->32 (And 
+            (32->64 (Ge (GetLocal (Name 'assert_scratch)) (Const 0))) 
+            (32->64 (Lt (GetLocal (Name 'assert_scratch)) e2))))
+
+            (load-from-heap e1 type (Mul (Const 8) (Add (Const 1) (Sar e2 (Const int-shift)))))
+            (err)
+        )
+))
 
 (define (compile-let id e1 e2 c)
     (seq
@@ -226,9 +241,9 @@
             (compile-string-chars cs))]))
 
 ;; Helper function for getting a value from the heap and pushing it's value to the stack.
-(define (load-from-heap e type offset c)
+(define (load-from-heap e type offset)
     (seq
-        (LoadHeap (i64) (64->32 (Add offset (Xor (Const type) (compile-e e c)))))))
+        (LoadHeap (i64) (64->32 (Add offset (Xor (Const type) e))))))
 
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3 c)
