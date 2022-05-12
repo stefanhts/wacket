@@ -1,2 +1,3 @@
 #lang wacket
-(vector-set! (make-vector 4 42) 2 69)
+(define (lil_fun x y) (* (add1 x) y))
+(lil_fun -13 4)
