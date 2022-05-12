@@ -116,7 +116,7 @@
             ['<= (Le (assert-integer e1) (assert-integer e2))]
             ['+ (Add (assert-integer e1) (assert-integer e2))]
             ['- (Sub (assert-integer e1) (assert-integer e2))]
-            ['+ (Mul (assert-integer e1) (assert-integer e2))]
+            ['* (Mul (assert-integer e1) (assert-integer e2))]
             ['/ (Div (assert-integer e1) (assert-integer e2))]
             ['or (Or e1 e2)]
             ['and (And e1 e2)]
