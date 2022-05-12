@@ -218,10 +218,10 @@
 ;; Pops the value at the top of the stack.
 (define (pop-stack)
     (seq
-        ;; TODO: Jump to error if stack value is at `top-stack-address`.
+        (WatIf (Eq (GetGlobal (Name stack-name)) (ConstT (i32) top-stack-address)) (err) 
         (SetGlobal (Name stack-name) (SubT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) 8))) ; Decrement pointer simulate popping.
         (LoadHeap (i64) (GetGlobal (Name stack-name))) ; Retrieve the value here.
-))
+)))
 
 ;; Increments the heap pointer to the next available position.
 (define (increment-heap-pointer)
