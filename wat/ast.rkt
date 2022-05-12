@@ -21,8 +21,6 @@
 (struct FuncSignature (n ps r) #:prefab)
 ;; type ExportFuncSignature = (ExportFuncSignature (name))
 (struct ExportFuncSignature (n) #:prefab)
-;; type Param = (Param (name? Type))
-(struct Param (n t) #:prefab)
 ;; type Result = (Result (Type))
 (struct Result (t) #:prefab)
 ;; type Local = (Local (name? Type))
