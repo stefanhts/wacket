@@ -224,10 +224,10 @@
         (match p
             ['vector-set! (seq
                 (SetLocal (Name secondary-pointer) e1)
-                (SetLocal (Name 'assert_scratch) (load-from-heap (GetLocal (Name secondary-pointer)) type-vect (Const 0)))
+                (SetLocal (Name assert_scratch) (load-from-heap (GetLocal (Name secondary-pointer)) type-vect (Const 0)))
                 (WatIf (64->32 (And 
                     (32->64 (Ge (Sar e2 (Const int-shift)) (Const 0))) 
-                    (32->64 (Lt (Sar e2 (Const int-shift)) (GetLocal (Name 'assert_scratch))))))
+                    (32->64 (Lt (Sar e2 (Const int-shift)) (GetLocal (Name assert_scratch))))))
 
                     (seq
                         (64->32 (Add (Xor (GetLocal (Name secondary-pointer)) (Const type-vect)) (Mul (Const 8) (Add (Const 1) (Sar e2 (Const int-shift))))))
@@ -264,10 +264,10 @@
 ;; Gets by index in an array-type structure (vector or string currently).
 (define (compile-ref e1 e2 type)
     (seq
-        (SetLocal (Name 'assert_scratch) (load-from-heap e1 type (Const 0)))
+        (SetLocal (Name assert_scratch) (load-from-heap e1 type (Const 0)))
         (WatIf (64->32 (And 
                     (32->64 (Ge (Sar e2 (Const int-shift)) (Const 0))) 
-                    (32->64 (Lt (Sar e2 (Const int-shift)) (GetLocal (Name 'assert_scratch))))))
+                    (32->64 (Lt (Sar e2 (Const int-shift)) (GetLocal (Name assert_scratch))))))
 
             (load-from-heap e1 type (Mul (Const 8) (Add (Const 1) (Sar e2 (Const int-shift)))))
             (err)

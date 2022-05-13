@@ -1,1 +1,2 @@
 #lang wacket
+(make-vector 3 #t)

@@ -134,17 +134,17 @@ function unwrap(raw) {
     case typesEnum.T_EMPTY:
       return "'()"
     case typesEnum.T_CONS:
-      return "#<cons>"
+      return "#\<cons\>"
     case typesEnum.T_BOX:
-      return "#<box>"
+      return "#\<box\>"
     case typesEnum.T_VECT:
-      return "#<vector>"
+      return "#\<vector\>"
       // return "'" + result_interior(raw) // TODO
     case typesEnum.T_STR:
-      return "#<string>"
+      return "#\<string\>"
       //return '"' + val_unwrap_str(raw) + '"' // TODO
     case typesEnum.T_PROC:
-      return "#<procedure>"
+      return "#\<procedure\>"
     case typesEnum.T_INVALID:
       return "internal error"
   }
@@ -204,7 +204,7 @@ function val_unwrap_int(raw) {
 }
 
 function val_unwrap_bool(raw) {
-  return raw === val_true
+  return (raw === val_true) + ""
 }
 
 function val_wrap_int(i) {
