@@ -1,2 +1,3 @@
 #lang wacket
-(let ((y 5)) ((lambda (x) y) 4))
+(define (doubler x) (+ x x))
+((lambda (y) (doubler y)) 21)

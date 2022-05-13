@@ -10,20 +10,25 @@
 (define heap-name (gensym 'heap))
 (define internal-pointer (gensym 'i))
 (define secondary-pointer (gensym 'j))
+(define function-names '())
 (define (compile p)
     (match p
-        [(Prog ds e)
+        [(Prog ds e) (let* ((lams (lambdas p)) (all-funcs (append ds lams)))
+            (begin (set! function-names (funcnames lams))
             (Module (list (Import 'io 'read (FuncSignature 'readByte '() (Result (i64))))
                           (Import 'io 'write (FuncSignature 'writeByte (list '_) (Result (i64))))
                           (Import 'io 'peek (FuncSignature 'peekByte '() (Result (i64))))
                           (Import 'err 'error (FuncSignature 'error '() (Result (i64))))
                           (Export 'main (ExportFuncSignature 'main))
+                          (Table (length lams))
+                          (Elem function-names)
+                          (TypeDec)
                           (MemoryExport)
                           (Global heap-name (i32) (Const 0))
                           (Global stack-name (i32) (Const top-stack-address))
                           (Func (FuncSignature 'main '() (Result (i64))) (list assert_scratch app_scratch internal-pointer secondary-pointer)
-                              (Body (seq (compile-e e '()))))
-                          (FuncList (seq (compile-defines ds) (compile-lambda-defines (lambdas p))))))]))
+                              (Body (seq (compile-e e (reverse (define-ids ds))))))
+                          (FuncList (seq (compile-defines ds) (compile-lambda-defines lams)))))))]))
 
 (define (compile-es es c)
     (match es
@@ -31,6 +36,19 @@
         [(cons e es)
             (seq (compile-e e c)
                  (compile-es es c))]))
+
+(define (funcnames fs)
+    (match fs
+        [(cons (Lam f _ _) fs) (cons f (funcnames fs))]
+        [(cons (Defn f _ _) fs) (cons f (funcnames fs))]
+        ['() '()]))
+
+;; [Listof Defn] -> [Listof Id]
+(define (define-ids ds)
+  (match ds
+    ['() '()]
+    [(cons (Defn f xs e) ds)
+     (cons f (define-ids ds))]))
 
 (define (compile-defines ds)
     (match ds
@@ -41,9 +59,13 @@
 
 ;; Defn -> Asm
 (define (compile-define d)
-  (match d
-    [(Defn f xs e)
-     (compile-lambda-define (Lam f xs e))]))
+    (match d
+        [(Defn f xs e)
+         (seq (Func
+                (FuncSignature f xs (Result (i64)))
+                (list assert_scratch app_scratch internal-pointer secondary-pointer)
+                (Body (seq (compile-e e (tupleize 'param xs))))
+                ))]))
 
 ;; [Listof Lam] -> Asm
 (define (compile-lambda-defines ls)
@@ -76,11 +98,15 @@
     (map cons (make-list (length xs) type) (reverse xs))
 )
 
-;; TODO: make this work for expressions (look up webassembly tables)
+(define (compile-app-def f es c)
+    (seq (compile-es es c)
+         (Call f)))
+
 (define (compile-app e es c)
     (seq (Comment "compiling app")
          (compile-es es c)
-         (TeeLocal (Name app_scratch) (assert-proc (compile-e e c))) ;; put first arg on stack once, after ensuring it's a proc
+         (Comment "put function to be called on stack, after ensuring it's a proc")
+         (TeeLocal (Name app_scratch) (assert-proc (compile-e e c))) 
          (CallIndirect (64->32 (load-from-heap-by-address type-proc 0 (GetLocal (Name app_scratch)))))
          (Comment "done compiling app")))
 
@@ -116,6 +142,7 @@
         [(Begin e1 e2) (compile-begin e1 e2 c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
         [(Let id e1 e2) (compile-let id e1 e2 c)]
+        [(AppDef f es) (compile-app-def f es c)]
         [(App e es) (seq (compile-app e es c))]
         [(Lam f xs e)       (compile-lam f xs e c)]))
 
@@ -372,10 +399,14 @@
      (seq (push-to-stack-precompiled (load-from-heap-by-address type-proc off (GetLocal (Name lam_heap_loc))))
           (copy-env-to-stack fvs (+ 8 off)))]))
 
-;; TODO: given function name, give index in table, of type i64
 ;; (might need to pass around some context for this, or use a global variable)
 (define (lookup-function-table f)
-    (Const 69)) ;; this is just a random placeholder for now
+    (seq (Comment "function table index, looked up at compile time") 
+         (Const (function-table-helper f function-names))))
+(define (function-table-helper f ts)
+    (match ts
+        ['() (error (string-append (symbol->string f) ": function name does not exist in function table"))]
+        [(cons t ts) (if (symbol=? t f) 0 (add1 (function-table-helper f ts)))]))
 
 (define (compile-is-type mask type e c)
     (WatIf (Eqz (Xor (And (compile-e e c) (Const mask)) (Const type)))
