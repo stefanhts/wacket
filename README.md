@@ -112,7 +112,8 @@ Alternatively, your syntax checker may fail to do anything at all, because of th
 - Tail recursion
 - Lambdas with arbitrary signatures
 - update the wat AST in the README to reflect more recent changes
-- RTS printing for heap structures
+- More detailed RTS printing for heap structures
+- Arity checking
 
 ## Complete
 
