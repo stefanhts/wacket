@@ -1,12 +1,23 @@
 #lang racket
   (provide parse parse-define parse-e)
   (require "ast.rkt")
-   
-  ;; [Listof S-Expr] -> Prog
+
+  (define defined-function-names '())
+
+  (define (get-defined-function-names s)
+    (match s
+      [(cons _ '()) '()]
+      [(cons (list 'define (list-rest (? symbol? f) _) _) s) (cons f (get-defined-function-names s))]))
+
   (define (parse s)
+    (begin (set! defined-function-names (get-defined-function-names s))
+      (parse-after-defined-functions-found s)))
+
+  ;; [Listof S-Expr] -> Prog
+  (define (parse-after-defined-functions-found s)
     (match s
       [(cons (and (cons 'define _) d) s)
-       (match (parse s)
+       (match (parse-after-defined-functions-found s)
          [(Prog ds e)
           (Prog (cons (parse-define d) ds) e)])]
       [(cons e '()) (Prog '() (parse-e e))]
@@ -47,7 +58,7 @@
                 (andmap symbol? xs))
            (Lam (gensym 'lambda) (append xs (list lam_heap_loc)) (parse-e e))
            (error "parse lambda error"))]
-      [(cons (? symbol? f) es)
+      [(cons (? (defined-function?) f) es)
         (AppDef f (map parse-e es))]
       [(cons e es)
        (App (parse-e e) (map parse-e es))]
@@ -71,3 +82,7 @@
       (and (symbol? x)
            (memq x ops))))
 
+  (define (defined-function?)
+    (lambda (x)
+      (and (symbol? x)
+           (memq x defined-function-names))))
