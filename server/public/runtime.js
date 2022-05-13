@@ -39,37 +39,37 @@ const importObject = {
 };
 
 function error() {
-  output.innerHTML = output.innerHTML + "\n-----------------\n| RUNTIME ERROR |\n-----------------"
+  output.innerHTML = output.innerHTML + "RUNTIME ERROR"
   throw "Runtime Error"
 }
 
-function run() {
-  output.innerHTML = " "
-  input = document.getElementById("inputbox").value;
-  (async () => {
-    console.log("running 'run'");
-    const response = await fetch('main.wasm');
-    const buffer = await response.arrayBuffer();
-    const module = new WebAssembly.Module(buffer);
-    const instance = new WebAssembly.Instance(module, importObject);
-    console.log("input: ", input);
-    console.log("input type: ", typeof input);
-    STDIN = Array.from(ENCODER.encode(input));
-    console.log("STDIN: ", STDIN);
-    console.log("STDOUT: ", STDOUT);
-    const rawResult = instance.exports.main(42);
-    const memory = instance.exports.memory;
-    var i32 = new Uint32Array(memory.buffer)
-    console.log(i32)
-    console.log(memory.buffer)
-    flushSTDOUT();
-    console.log("raw: ", rawResult);
-    const unwrappedResult = unwrap(rawResult);
-    console.log("unwrapped: ", unwrappedResult);
-    result = unwrappedResult;
-    console.log("result: ", result);
-    output.innerHTML = output.innerHTML + result.replace("<", "&lt;").replace(">", "&gt;");
-  })();
+function run(){
+    output.innerHTML = " "
+    input = document.getElementById("inputbox").value;
+    (async () => {
+        console.log("running 'run'");
+        const response = await fetch('main.wasm');
+        const buffer = await response.arrayBuffer();
+        const module = new WebAssembly.Module(buffer);
+        const instance = new WebAssembly.Instance(module, importObject);
+        console.log("input: ", input);
+        console.log("input type: ", typeof input);
+        STDIN = Array.from(ENCODER.encode(input));
+        console.log("STDIN: ", STDIN);
+        console.log("STDOUT: ", STDOUT);
+        const rawResult = instance.exports.main(42);
+        const memory = instance.exports.memory;
+        var i32 = new Uint32Array(memory.buffer)
+        console.log(i32)
+        console.log(memory.buffer)
+        flushSTDOUT();
+        console.log("raw: ", rawResult);
+        const unwrappedResult = unwrap(rawResult);
+        console.log("unwrapped: ", unwrappedResult);
+        result = unwrappedResult;
+        console.log("result: ", result);
+        output.innerHTML = output.innerHTML + result.toString().replace("<", "&lt;").replace(">", "&gt;");
+      })();
 }
 
 const typesEnum = Object.freeze({
