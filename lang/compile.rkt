@@ -134,6 +134,7 @@
         [(Var id) (compile-variable id c)]
         [(Str s)  (compile-string s)]
         [(Eof) (Const (imm->bits eof))]
+        [(Empty) (Const val-empty)]
         [(Prim0 p) (compile-prim0 p)]
         [(Prim1 p e) (compile-prim1 p e c)]
         [(Prim2 p e1 e2) (compile-prim2 p e1 e2 c)]
