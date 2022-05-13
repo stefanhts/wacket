@@ -66,7 +66,7 @@ function run(){
         console.log("unwrapped: ", unwrappedResult);
         result = unwrappedResult;
         console.log("result: ", result);
-        output.innerHTML = output.innerHTML + result.replace("<", "&lt;").replace(">", "&gt;");
+        output.innerHTML = output.innerHTML + result.toString().replace("<", "&lt;").replace(">", "&gt;");
       })();
 }
 
