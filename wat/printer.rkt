@@ -31,6 +31,15 @@
             (tabs ntabs) "(memory (export \"memory\") 2)\n"
             (parse-definitions ds ntabs)
         )]
+        [(cons (Table n) ds) (string-append
+            (tabs ntabs) "(table "(number->string n) " funcref)\n"
+            (parse-definitions ds ntabs))]
+        [(cons (TypeDec) ds) (string-append
+            (tabs ntabs) "(type $i64_to_i64 (func (param i64 i64) (result i64)))\n"
+            (parse-definitions ds ntabs))]
+        [(cons (Elem es) ds) (string-append
+            (tabs ntabs) "(elem (i32.const 0)" (parse-elems es) ")\n"
+            (parse-definitions ds ntabs))]
         [(cons (Export n d) ds) (string-append
             (parse-export n d ntabs)
             (parse-definitions ds ntabs))]
@@ -91,6 +100,12 @@
         [x (parse-error "Expected const, got " x)]
 ))
 
+(define (parse-elems es)
+    (match es
+        [(cons e es)
+            (string-append " $" (symbol->string e) (parse-elems es))]
+        ['() ""]
+    ))
 (define (parse-func s ls b ntabs) 
     (string-append
         (tabs ntabs) "(func " (parse-funcsig s ntabs) "\n"
@@ -112,6 +127,9 @@
 (define (parse-instruction-list is ntabs)
     (match is
         ['() ""]
+        [(cons (Comment c) is) (string-append 
+            (tabs ntabs) ";; " c "\n" 
+            (parse-instruction-list is ntabs))]
         [(cons (Result t) is) (string-append 
             (tabs ntabs) "(result " (wattype->string t) ")\n" 
             (parse-instruction-list is ntabs))]
@@ -120,6 +138,10 @@
             (parse-instruction-list is ntabs))]
         [(cons (Call f) is) (string-append (tabs ntabs) "(call $" (symbol->string f) ")\n" 
         (parse-instruction-list is ntabs))]
+        [(cons (CallIndirect i) is) (string-append (tabs ntabs) "(call_indirect (type $i64_to_i64)\n"
+            (parse-instruction-list (seq i) (add1 ntabs)) 
+            (tabs ntabs) ")\n" 
+            (parse-instruction-list is ntabs))]
         [(cons (WatIf p t f) is) (string-append
             (parse-instruction-list (seq p) ntabs)
             (tabs ntabs) "(if (result i64)\n"
@@ -144,7 +166,13 @@
             (parse-instruction-list next-is ntabs))]
         [(cons (GetLocal (Name n)) is) (string-append (tabs ntabs) "(local.get $" (symbol->string n) ")\n"
             (parse-instruction-list is ntabs))]
+        [(cons (SetLocal (Name n) '()) is) (string-append (tabs ntabs) "(local.set $" (symbol->string n) ")\n"
+            (parse-instruction-list is ntabs))]
         [(cons (SetLocal (Name n) i) is) (string-append (tabs ntabs) "(local.set $" (symbol->string n) "\n"
+            (parse-instruction-list (seq i) (add1 ntabs))
+            (tabs ntabs) ")\n"
+            (parse-instruction-list is ntabs))]
+        [(cons (TeeLocal (Name n) i) is) (string-append (tabs ntabs) "(local.tee $" (symbol->string n) "\n"
             (parse-instruction-list (seq i) (add1 ntabs))
             (tabs ntabs) ")\n"
             (parse-instruction-list is ntabs))]
