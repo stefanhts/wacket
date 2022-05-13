@@ -129,6 +129,7 @@ Alternatively, your syntax checker may fail to do anything at all, because of th
 - Functions
 - Lets
 - Prim0
+- IO
 - Strings
 - Vectors
 - Lambdas with one argument
