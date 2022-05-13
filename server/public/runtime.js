@@ -132,12 +132,17 @@ function unwrap(raw) {
     case typesEnum.T_VOID:
       return " "
     case typesEnum.T_EMPTY:
+      return "'()"
     case typesEnum.T_CONS:
+      return "#<cons>"
     case typesEnum.T_BOX:
+      return "#<box>"
     case typesEnum.T_VECT:
-      return "'" + result_interior(raw)
+      return "#<vector>"
+      // return "'" + result_interior(raw) // TODO
     case typesEnum.T_STR:
-      return '"' + val_unwrap_str(raw) + '"'
+      return "#<string>"
+      //return '"' + val_unwrap_str(raw) + '"' // TODO
     case typesEnum.T_PROC:
       return "#<procedure>"
     case typesEnum.T_INVALID:
