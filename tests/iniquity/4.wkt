@@ -1,0 +1,3 @@
+#lang wacket
+(define (f x) (car x))
+(f (cons 42 69))

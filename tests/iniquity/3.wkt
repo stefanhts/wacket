@@ -1,0 +1,4 @@
+#lang wacket
+(define (f1 a b c) (+ (f2 a b) c))
+(define (f2 x y) (* x y))
+(f1 42 84 124)
