@@ -1,0 +1,4 @@
+#lang wacket
+(let ((v (make-vector 3 #t)))
+    (begin (vector-set! v 1 #f)
+           (vector-ref v 1)))

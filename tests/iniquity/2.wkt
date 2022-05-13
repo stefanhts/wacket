@@ -1,0 +1,3 @@
+#lang wacket
+(define (f x y) (+ x y))
+(f 42 84)
