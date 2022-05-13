@@ -1,6 +1,6 @@
 default:
-	racket -t lang/compile-file.rkt -m example.wkt > example.wat
-	wat2wasm example.wat -o server/public/main.wasm
+	racket -t lang/compile-file.rkt -m program.wkt > program.wat
+	wat2wasm program.wat -o server/public/main.wasm
 
 %.wat: %.wkt
 	racket -t lang/compile-file.rkt -m $< > $@

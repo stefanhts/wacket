@@ -2,6 +2,15 @@
 
 <img src="server/public/wacket-logo-white.png" width="100">
 
+## Running and Testing our project
+
+1. Get everything installed (see [this section](#prerequisites))
+2. Write your program in program.wkt
+3. Run make
+4. Start your server (see [Getting Server Running](#getting-server-running))
+5. Click the run button, or enter input (for readbyte programs) and then click run
+6. The output of the program should display under the run button
+
 ## Prerequisites
 
 Make sure you have the following installed:
