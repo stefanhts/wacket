@@ -82,6 +82,7 @@ This tricks the syntax checker because it looks at `/usr/share/racket/collects/w
 - Pattern Matching
 - Tail recursion
 - Lambdas with arbitrary signatures
+- update the wat AST in the README to reflect more recent changes
 
 ## Complete
 
@@ -104,6 +105,8 @@ This tricks the syntax checker because it looks at `/usr/share/racket/collects/w
 ## wat AST
 
 > Note: [list of Things] may be empty in this representation.
+
+> Note 2: this is not up to date
 
 ```
 type Module = (Module [list of Definitions])
