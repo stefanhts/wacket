@@ -1,3 +1,2 @@
 #lang wacket
-(define (doubler x) (+ x x))
-((lambda (y) (doubler y)) 21)
+(integer->char 97)

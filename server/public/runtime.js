@@ -37,7 +37,7 @@ const importObject = { io:  {read: readByte, write: writeByte, peek: peekByte},
                        err: {error: error}};
 
 function error() {
-  output.innerHTML = output.innerHTML + "\n-----------------\n| RUNTIME ERROR |\n-----------------"
+  output.innerHTML = output.innerHTML + "RUNTIME ERROR"
   throw "Runtime Error"
 }
 

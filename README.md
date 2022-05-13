@@ -38,6 +38,10 @@ Make sure you have the following installed:
 Run `make tests/{folder}/{number}.wasm` to compile to `main.wasm` in the `server/` folder, which can then be run
 from the frontend.
 
+## Errors
+
+
+
 ## Target Language: WebAssembly
 
 We need to write to `.wat` which is the WebAssembly Text format. From there we can use wat2wasm to turn that into the actual assembly code which can run in the browser.
