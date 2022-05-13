@@ -422,9 +422,12 @@
      (match (eq? x y)
        [#t (match type
             ['local 0]
-            ['param param])]
+            ['param 'param])]
        [#f (match type
-            ['local (+ 8 (lookup x rest))]
+            ['local 
+                (match (lookup x rest)
+                    ['param 'param]
+                    [num (+ 8 num)])]
             ['param (lookup x rest)]
        )])])) 
        
