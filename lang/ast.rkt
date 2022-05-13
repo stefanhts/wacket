@@ -41,4 +41,5 @@
 (struct Let   (x e1 e2)    #:prefab)
 (struct Var   (x)          #:prefab)
 (struct App   (e es)       #:prefab)
+(struct AppDef (f es)      #:prefab)
 (struct Lam   (f xs e)     #:prefab)

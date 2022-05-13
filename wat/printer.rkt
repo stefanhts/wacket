@@ -35,13 +35,10 @@
             (tabs ntabs) "(table "(number->string n) " funcref)\n"
             (parse-definitions ds ntabs))]
         [(cons (TypeDec) ds) (string-append
-            (tabs ntabs) "(type $return_i32 (func (result i32))\n"
-            (parse-definitions ds ntabs))]
-        [(cons (Type) ds) (string-append
-            (tabs ntabs) "(type $return_i32)\n" 
+            (tabs ntabs) "(type $i64_to_i64 (func (param i64 i64) (result i64)))\n"
             (parse-definitions ds ntabs))]
         [(cons (Elem es) ds) (string-append
-            (tabs ntabs) "(elem " (parse-elems) ")"
+            (tabs ntabs) "(elem (i32.const 0)" (parse-elems es) ")\n"
             (parse-definitions ds ntabs))]
         [(cons (Export n d) ds) (string-append
             (parse-export n d ntabs)
@@ -103,10 +100,10 @@
         [x (parse-error "Expected const, got " x)]
 ))
 
-(define (parse-elems es ntabs)
+(define (parse-elems es)
     (match es
         [(cons e es)
-            (string-append " $" (symbol->string e) (parse-elems es ntabs))]
+            (string-append " $" (symbol->string e) (parse-elems es))]
         ['() ""]
     ))
 (define (parse-func s ls b ntabs) 
@@ -141,9 +138,9 @@
             (parse-instruction-list is ntabs))]
         [(cons (Call f) is) (string-append (tabs ntabs) "(call $" (symbol->string f) ")\n" 
         (parse-instruction-list is ntabs))]
-        [(cons (CallIndirect i) is) (string-append (tabs ntabs) "(call_indirect (type $return_i64) (\n" ;; TODO make type return_i64
+        [(cons (CallIndirect i) is) (string-append (tabs ntabs) "(call_indirect (type $i64_to_i64)\n"
             (parse-instruction-list (seq i) (add1 ntabs)) 
-            (tabs ntabs) "))\n" 
+            (tabs ntabs) ")\n" 
             (parse-instruction-list is ntabs))]
         [(cons (WatIf p t f) is) (string-append
             (parse-instruction-list (seq p) ntabs)
