@@ -1,0 +1,2 @@
+#lang wacket
+(cdr (cons #\a (cons #\b '())))
