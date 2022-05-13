@@ -1,27 +1,34 @@
 #lang racket
-(require "ast.rkt" "../wat/ast.rkt" "types.rkt")
+(require "ast.rkt" "../wat/ast.rkt" "types.rkt" "fv.rkt" "lambdas.rkt")
 (provide compile)
 (define local 'local)
 (define param 'param)
+(define assert_scratch (gensym 'assert_scratch))
+(define app_scratch (gensym 'app_scratch))
 (define stack-name (gensym 'stack))
 (define top-stack-address 16384)
 (define heap-name (gensym 'heap))
 (define internal-pointer (gensym 'i))
 (define secondary-pointer (gensym 'j))
-(define (compile e)
-    (match e
-        [(Prog ds e)
+(define function-names '())
+(define (compile p)
+    (match p
+        [(Prog ds e) (let* ((lams (lambdas p)) (all-funcs (append ds lams)))
+            (begin (set! function-names (funcnames lams))
             (Module (list (Import 'io 'read (FuncSignature 'readByte '() (Result (i64))))
                           (Import 'io 'write (FuncSignature 'writeByte (list '_) (Result (i64))))
                           (Import 'io 'peek (FuncSignature 'peekByte '() (Result (i64))))
                           (Import 'err 'error (FuncSignature 'error '() (Result (i64))))
                           (Export 'main (ExportFuncSignature 'main))
+                          (Table (length lams))
+                          (Elem function-names)
+                          (TypeDec)
                           (MemoryExport)
                           (Global heap-name (i32) (Const 0))
                           (Global stack-name (i32) (Const top-stack-address))
-                          (Func (FuncSignature 'main '() (Result (i64))) (list 'assert_scratch internal-pointer secondary-pointer) 
-                            (Body (seq (compile-e e '()))))
-                          (FuncList (compile-defines ds))))]))
+                          (Func (FuncSignature 'main '() (Result (i64))) (list assert_scratch app_scratch internal-pointer secondary-pointer)
+                              (Body (seq (compile-e e (reverse (define-ids ds))))))
+                          (FuncList (seq (compile-defines ds) (compile-lambda-defines lams)))))))]))
 
 (define (compile-es es c)
     (match es
@@ -30,6 +37,19 @@
             (seq (compile-e e c)
                  (compile-es es c))]))
 
+(define (funcnames fs)
+    (match fs
+        [(cons (Lam f _ _) fs) (cons f (funcnames fs))]
+        [(cons (Defn f _ _) fs) (cons f (funcnames fs))]
+        ['() '()]))
+
+;; [Listof Defn] -> [Listof Id]
+(define (define-ids ds)
+  (match ds
+    ['() '()]
+    [(cons (Defn f xs e) ds)
+     (cons f (define-ids ds))]))
+
 (define (compile-defines ds)
     (match ds
         ['() (seq)]
@@ -37,22 +57,74 @@
           (seq (compile-define d)
                (compile-defines ds))]))
 
+;; Defn -> Asm
 (define (compile-define d)
     (match d
         [(Defn f xs e)
          (seq (Func
                 (FuncSignature f xs (Result (i64)))
-                '(assert_scratch)
-                (Body (seq (compile-e e (params xs))))
+                (list assert_scratch app_scratch internal-pointer secondary-pointer)
+                (Body (seq (compile-e e (tupleize 'param xs))))
                 ))]))
 
-(define (params xs)
-    (map cons (make-list (length xs) param) (reverse xs))
+;; [Listof Lam] -> Asm
+(define (compile-lambda-defines ls)
+  (match ls
+    ['() (seq)]
+    [(cons l ls)
+     (seq (compile-lambda-define l)
+          (compile-lambda-defines ls))]))
+
+;; Lam -> Asm
+(define (compile-lambda-define l)
+  (let ((fvs (fv l)))
+    (match l
+      [(Lam f xs e)
+       (let ((env (append (tupleize 'local fvs) (tupleize 'param xs))))
+       (seq (Func
+                (FuncSignature f xs (Result (i64)))
+                (list assert_scratch app_scratch)
+                (Body (seq  (Comment "copying environment to stack")
+                            (copy-env-to-stack fvs 8)
+                            (Comment "compililng function expression")
+                            (compile-e e env)
+                            (Comment "decrementing stack pointer to pop closure")
+                            (SetGlobal (Name stack-name) ;; decrement stack pointer to pop closure
+                                       (SubT (i32) 
+                                             (GetGlobal (Name stack-name)) 
+                                             (ConstT (i32) (* 8 (length fvs))))))))))])))
+
+(define (tupleize type xs)
+    (map cons (make-list (length xs) type) (reverse xs))
 )
 
-(define (compile-app f es c)
+(define (compile-app-def f es c)
     (seq (compile-es es c)
          (Call f)))
+
+(define (compile-app e es c)
+    (seq (Comment "compiling app")
+         (compile-es es c)
+         (Comment "put function to be called on stack, after ensuring it's a proc")
+         (TeeLocal (Name app_scratch) (assert-proc (compile-e e c))) 
+         (CallIndirect (64->32 (load-from-heap-by-address type-proc 0 (GetLocal (Name app_scratch)))))
+         (Comment "done compiling app")))
+
+; ;; Expr [Listof Expr] CEnv -> Asm
+; ;; The return address is placed above the arguments, so callee pops
+; ;; arguments and return address is next frame
+; (define (compile-app-nontail e es c)
+;   (let ((r (gensym 'ret))
+;         (i (* 8 (length es))))
+;     (seq (Lea rax r)                              ;; put return adress on stack
+;          (Push rax)
+;          (compile-es (cons e es) (cons #f c))     ;; put result of first arg on stack followed by results of all args
+;          (Mov rax (Offset rsp i))                 
+;          (assert-proc rax)                        ;; make sure first arg is proc struct
+;          (Xor rax type-proc)                      ;; get rid of proc bit tagging
+;          (Mov rax (Offset rax 0))                 ;; fetch the code label
+;          (Jmp rax)                                ;; make the call
+;          (Label r))))
 
 (define (compile-e e c)
     (match e
@@ -70,7 +142,9 @@
         [(Begin e1 e2) (compile-begin e1 e2 c)]
         [(If e1 e2 e3) (compile-if e1 e2 e3 c)]
         [(Let id e1 e2) (compile-let id e1 e2 c)]
-        [(App f es) (seq (compile-app f es c))]))
+        [(AppDef f es) (compile-app-def f es c)]
+        [(App e es) (seq (compile-app e es c))]
+        [(Lam f xs e)       (compile-lam f xs e c)]))
 
 (define (compile-variable id c)
     (match (lookup id c)
@@ -200,11 +274,12 @@
 ))
 
 (define (compile-let id e1 e2 c)
-    (seq
-        (GetGlobal (Name stack-name))
-        (StoreHeap (i64) (compile-e e1 c))
-        (SetGlobal (Name stack-name) (AddT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) 8)))
-        (compile-e e2 (cons (cons 'local id) c))
+    (seq (Comment "compiling let")
+         (GetGlobal (Name stack-name))
+         (StoreHeap (i64) (compile-e e1 c))
+         (SetGlobal (Name stack-name) (AddT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) 8)))
+         (compile-e e2 (cons (cons 'local id) c))
+         (Comment "done compiling let")
     ))
 
 ;; Pushes the given value to the stack.
@@ -214,6 +289,12 @@
         (StoreHeap (i64) (compile-e e c))
         (SetGlobal (Name stack-name) (AddT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) 8))) ; Add pointer simulate pushing.
 ))
+
+(define (push-to-stack-precompiled thing-to-push)
+    (seq
+        (GetGlobal (Name stack-name))
+        (StoreHeap (i64) thing-to-push)
+        (SetGlobal (Name stack-name) (AddT (i32) (GetGlobal (Name stack-name)) (ConstT (i32) 8))))) ; Add pointer simulate pushing.
 
 ;; Pops the value at the top of the stack.
 (define (pop-stack)
@@ -226,6 +307,10 @@
 ;; Increments the heap pointer to the next available position.
 (define (increment-heap-pointer)
     (seq (SetGlobal (Name heap-name) (AddT (i32) (GetGlobal (Name heap-name)) (ConstT (i32) 8)))))
+
+;; Increments the heap pointer by a specified amount
+(define (multi-increment-heap-pointer n)
+    (seq (SetGlobal (Name heap-name) (AddT (i32) (GetGlobal (Name heap-name)) (ConstT (i32) n)))))
 
 ;; Returns the current address pointed to on the heap, tagged with the given type.
 (define (get-tagged-heap-address type)
@@ -271,11 +356,57 @@
     (seq
         (LoadHeap (i64) (64->32 (Add offset (Xor (Const type) e))))))
 
+(define (load-from-heap-by-address type offset address)
+    (seq
+        (LoadHeap (i64) (64->32 (Add (Const offset) (Xor (Const type) address))))))
+
 ;; Expr Expr Expr -> Asm
 (define (compile-if e1 e2 e3 c)
     (WatIf (Ne (compile-e e1 c) (Const val-false))
         (compile-e e2 c)
         (compile-e e3 c)))
+
+;; Id [Listof Id] Expr CEnv -> Asm
+(define (compile-lam f xs e c)
+  (let ((fvs (fv (Lam f xs e))))
+    (seq (Comment "compiling lam")
+         (get-tagged-heap-address type-proc)
+         (Comment "putting function index on heap")
+         (GetGlobal (Name heap-name))
+         (StoreHeap (i64) (lookup-function-table f))   ;; get the function index and put it on heap
+         (Comment "putting free vars on heap")
+         (free-vars-to-heap fvs c 8)
+         (Comment "incrementing heap pointer")
+         (multi-increment-heap-pointer (* 8 (add1 (length fvs)))) ;; increment heap pointer
+         (Comment "done compiling lam"))))
+
+;; [Listof Id] CEnv Int -> Asm
+;; Copy the values of given free variables into the heap at given offset
+(define (free-vars-to-heap fvs c off)
+  (match fvs
+    ['() (seq)]
+    [(cons x fvs)
+     (seq (AddT (i32) (GetGlobal (Name heap-name)) (ConstT (i32) off))
+          (StoreHeap (i64) (compile-variable x c))
+          (free-vars-to-heap fvs c (+ off 8)))]))
+
+;; [Listof Id] Int -> Asm
+;; Copy the closure environment at given offset to stack
+(define (copy-env-to-stack fvs off)
+  (match fvs
+    ['() (seq)]
+    [(cons _ fvs)
+     (seq (push-to-stack-precompiled (load-from-heap-by-address type-proc off (GetLocal (Name lam_heap_loc))))
+          (copy-env-to-stack fvs (+ 8 off)))]))
+
+;; (might need to pass around some context for this, or use a global variable)
+(define (lookup-function-table f)
+    (seq (Comment "function table index, looked up at compile time") 
+         (Const (function-table-helper f function-names))))
+(define (function-table-helper f ts)
+    (match ts
+        ['() (error (string-append (symbol->string f) ": function name does not exist in function table"))]
+        [(cons t ts) (if (symbol=? t f) 0 (add1 (function-table-helper f ts)))]))
 
 (define (compile-is-type mask type e c)
     (WatIf (Eqz (Xor (And (compile-e e c) (Const mask)) (Const type)))
@@ -302,10 +433,10 @@
 
 (define (assert-type mask type)
     (λ (arg)
-        (seq (SetLocal (Name 'assert_scratch) arg)
-             (WatIf (Ne (And (GetLocal (Name 'assert_scratch)) mask) type) 
+        (seq (SetLocal (Name assert_scratch) arg)
+             (WatIf (Ne (And (GetLocal (Name assert_scratch)) mask) type) 
                     (err) 
-                    (GetLocal (Name 'assert_scratch))))))
+                    (GetLocal (Name assert_scratch))))))
 
 (define assert-integer
     (assert-type (Const mask-int) (Const type-int)))
@@ -319,22 +450,24 @@
     (assert-type (Const ptr-mask) (Const type-str)))
 (define assert-vector
     (assert-type (Const ptr-mask) (Const type-vect)))
+(define assert-proc
+    (assert-type (Const ptr-mask) (Const type-proc)))
 
 (define (assert-codepoint arg)
-    (seq (SetLocal (Name 'assert_scratch) arg)
-         (WatIf (Lt (GetLocal (Name 'assert_scratch)) (imm->bits 0)) 
+    (seq (SetLocal (Name assert_scratch) arg)
+         (WatIf (Lt (GetLocal (Name assert_scratch)) (imm->bits 0)) 
                 (err)
-                (WatIf  (Gt (GetLocal (Name 'assert_scratch)) (imm->bits 1114111)) 
+                (WatIf  (Gt (GetLocal (Name assert_scratch)) (imm->bits 1114111)) 
                         (err)
-                        (WatIf (And (Ge (GetLocal (Name 'assert_scratch)) (imm->bits 55295)) 
-                                    (Le (GetLocal (Name 'assert_scratch)) (imm->bits 57344))) 
+                        (WatIf (And (Ge (GetLocal (Name assert_scratch)) (imm->bits 55295)) 
+                                    (Le (GetLocal (Name assert_scratch)) (imm->bits 57344))) 
                                (err) 
-                               (GetLocal (Name 'assert_scratch)))))))
+                               (GetLocal (Name assert_scratch)))))))
 
 (define (assert-byte arg)
-    (seq (SetLocal (Name 'assert_scratch) arg)
-         (WatIf (Lt (GetLocal (Name 'assert_scratch)) (imm->bits 0)) 
+    (seq (SetLocal (Name assert_scratch) arg)
+         (WatIf (Lt (GetLocal (Name assert_scratch)) (imm->bits 0)) 
                 (err)
-                (WatIf (Gt (GetLocal (Name 'assert_scratch)) (imm->bits 255)) 
+                (WatIf (Gt (GetLocal (Name assert_scratch)) (imm->bits 255)) 
                        (err) 
-                       (GetLocal (Name 'assert_scratch))))))
+                       (GetLocal (Name assert_scratch))))))

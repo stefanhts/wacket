@@ -2,6 +2,7 @@
 
 (provide (all-defined-out))
 
+(struct Comment (c) #:prefab)
 ;; type Module = (Module (Listof definitions))
 (struct Module (ds) #:prefab)
 ;; type Import = (Import (modulename funcname FuncSignature)) 
@@ -80,6 +81,8 @@
 
 (struct GetLocal (n) #:prefab)
 
+(struct TeeLocal (n i) #:prefab) ;; set local var without removing from stack
+
 (struct SetLocal (n i) #:prefab)
 
 (struct GetGlobal (n) #:prefab)
@@ -106,12 +109,23 @@
 (struct Start (f) #:prefab)
 ;; type Call = (Call (funcName))
 (struct Call (f) #:prefab)
+;; type CallIndirect = (CallIndirect (funcindex))
+(struct CallIndirect (i) #:prefab)
 ;; type Drop = (Drop)
 ;; this is for popping things off stack and discarding them
 (struct Drop () #:prefab)
 ;; type Load = (Load)
 ;; Used when the value is known to be stored on the stack.
 (struct Load () #:prefab)
+;; type Table = (Table (length))
+(struct Table (n) #:prefab)
+;; type Type = (TypeDec ())
+(struct TypeDec () #:prefab)
+;; type Type = (Type ())
+(struct Type () #:prefab)
+;; type Elem = (Elem (listof functions))
+(struct Elem (fs))
+
 
 ;; (U Instruction Asm) ... -> Asm
 ;; Convenient for sequencing instructions or groups of instructions
