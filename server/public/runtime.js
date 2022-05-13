@@ -33,8 +33,10 @@ let STDIN = []
 let STDOUT = []
 const output = document.getElementById("res")
 let result = ""
-const importObject = { io:  {read: readByte, write: writeByte, peek: peekByte},
-                       err: {error: error}};
+const importObject = {
+  io: { read: readByte, write: writeByte, peek: peekByte },
+  err: { error: error }
+};
 
 function error() {
   output.innerHTML = output.innerHTML + "RUNTIME ERROR"
@@ -134,17 +136,17 @@ function unwrap(raw) {
     case typesEnum.T_EMPTY:
       return "'()"
     case typesEnum.T_CONS:
-      return "#<cons>"
+      return "#\<cons\>"
     case typesEnum.T_BOX:
-      return "#<box>"
+      return "#\<box\>"
     case typesEnum.T_VECT:
-      return "#<vector>"
-      // return "'" + result_interior(raw) // TODO
+      return "#\<vector\>"
+    // return "'" + result_interior(raw) // TODO
     case typesEnum.T_STR:
-      return "#<string>"
-      //return '"' + val_unwrap_str(raw) + '"' // TODO
+      return "#\<string\>"
+    //return '"' + val_unwrap_str(raw) + '"' // TODO
     case typesEnum.T_PROC:
-      return "#<procedure>"
+      return "#\<procedure\>"
     case typesEnum.T_INVALID:
       return "internal error"
   }
@@ -200,11 +202,11 @@ function val_unwrap_char(raw) {
 }
 
 function val_unwrap_int(raw) {
-  return raw >> int_shift
+  return (raw >> int_shift) + ""
 }
 
 function val_unwrap_bool(raw) {
-  return raw === val_true
+  return (raw === val_true) + ""
 }
 
 function val_wrap_int(i) {
@@ -227,33 +229,33 @@ function val_wrap_void() {
   return val_void
 }
 
-function readByte(){
-    console.log("reading byte!");
-    if(STDIN.length < 1) {
-      return val_eof
-    }
-    return val_wrap_int(BigInt(STDIN.shift()))
+function readByte() {
+  console.log("reading byte!");
+  if (STDIN.length < 1) {
+    return val_eof
+  }
+  return val_wrap_int(BigInt(STDIN.shift()))
 }
 
-function writeByte(byte){
-    console.log("writing byte!");
-    const unwrappedByte = val_unwrap_int(byte);
-    STDOUT.push(Number(unwrappedByte))
-    return val_wrap_void();
+function writeByte(byte) {
+  console.log("writing byte!");
+  const unwrappedByte = val_unwrap_int(byte);
+  STDOUT.push(Number(unwrappedByte))
+  return val_wrap_void();
 }
 
-function peekByte(){
-    console.log("peeking byte!");
-    if(STDIN.length < 1) {
-      return val_eof
-    }
-    return val_wrap_int(BigInt(STDIN[0]))
+function peekByte() {
+  console.log("peeking byte!");
+  if (STDIN.length < 1) {
+    return val_eof
+  }
+  return val_wrap_int(BigInt(STDIN[0]))
 }
 
 function flushSTDOUT() {
-    console.log("STDOUT before Uint8 conversion: ", STDOUT);
-    STDOUT = Uint8Array.from(STDOUT);
-    console.log("STDOUT: ", STDOUT);
-    output.innerHTML = output.innerHTML + DECODER.decode(STDOUT);
-    STDOUT = []
+  console.log("STDOUT before Uint8 conversion: ", STDOUT);
+  STDOUT = Uint8Array.from(STDOUT);
+  console.log("STDOUT: ", STDOUT);
+  output.innerHTML = output.innerHTML + DECODER.decode(STDOUT);
+  STDOUT = []
 }

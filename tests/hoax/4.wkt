@@ -1,0 +1,2 @@
+#lang wacket
+(string-ref "abcd" 2)

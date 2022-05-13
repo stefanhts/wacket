@@ -1,0 +1,3 @@
+#lang wacket
+(define (f x) (add1 x))
+(f 1)
