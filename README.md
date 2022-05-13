@@ -76,15 +76,11 @@ To fix this problem, I navigated to `/usr/share/racket/collects/` and ran the co
 This tricks the syntax checker because it looks at `/usr/share/racket/collects/wacket`, but it's really just a symbolic link to `/usr/share/racket/collects/racket`.
 
 ## TODO
-- Change env to be a list of tuples indicating whether a variable is a param or local
+
 - Case
 - Cond
-- Lambdas
 - Tail recursion
-- Prim0
-- Strings
-- Vectors
-- assert-types for box/cons
+- Lambdas with arbitrary signatures
 
 ## Complete
 
@@ -99,6 +95,10 @@ This tricks the syntax checker because it looks at `/usr/share/racket/collects/w
 - Prim2
 - Functions
 - Lets
+- Prim0
+- Strings
+- Vectors
+- Lambdas with one argument
 
 ## wat AST
 
