@@ -28,9 +28,9 @@ Make sure you have the following installed:
 
 ## Quick-start
 
-1. Write some wacket (for example, into `example.rkt`)
-2. `make example.wat` (optional)
-3. `make example.wasm`
+1. Write some wacket (for example, into `program.rkt`)
+2. `make program.wat` (optional)
+3. `make program.wasm`
 
 ## Target Language: WebAssembly
 
