@@ -79,6 +79,7 @@ This tricks the syntax checker because it looks at `/usr/share/racket/collects/w
 
 - Case
 - Cond
+- Pattern Matching
 - Tail recursion
 - Lambdas with arbitrary signatures
 
