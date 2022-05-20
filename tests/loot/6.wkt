@@ -1,0 +1,4 @@
+#lang wacket
+(define (fun1 x y) (* x (+ y x)))
+(define (fun2 a b) (fun1 b a))
+((lambda (q) (+ (fun1 q 3) (fun2 q 3))) 5)

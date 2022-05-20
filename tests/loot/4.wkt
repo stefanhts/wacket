@@ -1,0 +1,2 @@
+#lang wacket
+(let ((f (lambda (x) (* (add1 x) x)))) (f 2))

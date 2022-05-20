@@ -1,0 +1,2 @@
+#lang wacket 
+(let ((b #f)) ((lambda (y) (if b 42 y)) 100))

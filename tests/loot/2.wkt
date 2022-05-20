@@ -1,0 +1,2 @@
+#lang wacket
+((lambda (x) (* 3 x)) 23)
