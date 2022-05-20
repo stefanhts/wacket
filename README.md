@@ -2,7 +2,7 @@
 
 <img src="server/public/wacket-logo-white.png" width="100">
 
-## Running and Testing our project
+## Running wacket
 
 1. Get everything installed (see [this section](#prerequisites))
 2. Write your program in program.wkt
