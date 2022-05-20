@@ -1,0 +1,3 @@
+#lang wacket
+(define (tri-sum x y z) (+ (+ x y) z))
+((lambda (x) (tri-sum x 16 x)) 42)

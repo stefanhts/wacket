@@ -1,0 +1,5 @@
+#lang wacket
+(define (adder n)
+  (λ (x)
+    (+ x n)))
+((adder 5) 10)
