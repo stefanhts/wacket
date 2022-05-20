@@ -1,2 +1,2 @@
 #lang wacket
-(let ((b #f)) ((lambda (y) (if b 42 y)) b))
+(let ((f (lambda (x) (* (add1 x) x)))) (f 2))
