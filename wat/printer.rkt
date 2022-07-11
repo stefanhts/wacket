@@ -231,6 +231,7 @@
         [(Sub i1 i2) (list "i64.sub"   (seq i1 i2))]
         [(Mul i1 i2) (list "i64.mul"   (seq i1 i2))]
         [(Div i1 i2) (list "i64.div_s" (seq i1 i2))]
+        [(Rem i1 i2) (list "i64.rem_s" (seq i1 i2))]
         [(And i1 i2) (list "i64.and"   (seq i1 i2))]
         [(Or  i1 i2) (list "i64.or"    (seq i1 i2))]
         [(Xor i1 i2) (list "i64.xor"   (seq i1 i2))]
