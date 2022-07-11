@@ -61,6 +61,8 @@
 ;; Convenience for adding 64 bit integers.
 (struct Sub (i1 i2) #:prefab)
 
+(struct Rem (i1 i2) #:prefab)
+
 (struct Mul (i1 i2) #:prefab)
 
 (struct Div (i1 i2) #:prefab)
