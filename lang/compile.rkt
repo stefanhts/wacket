@@ -208,6 +208,7 @@
             ['- (Sub (assert-integer e1) (assert-integer e2))]
             ['* (runtime-int->bits (Mul (runtime-bits->int (assert-integer e1)) (runtime-bits->int(assert-integer e2))))]
             ['/ (runtime-int->bits (Div (runtime-bits->int (assert-integer e1)) (runtime-bits->int(assert-integer e2))))]
+            ['% (Rem (assert-integer e1) (assert-integer e2))]
             ['or (Or e1 e2)]
             ['and (And e1 e2)]
             ['xor (Xor e1 e2)]

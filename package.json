@@ -18,7 +18,7 @@
   "homepage": "https://github.com/stefanhts/430_finalproj#readme",
   "dependencies": {
     "express": "^4.17.3",
-    "node-fetch": "^3.2.3"
+    "node-fetch": "^3.2.10"
   },
   "module": "true"
 }
